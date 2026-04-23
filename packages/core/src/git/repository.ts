@@ -511,18 +511,20 @@ export class Repository {
    * @param setUpstream - Set upstream tracking
    */
   async push(remote?: string, branch?: string, setUpstream = false): Promise<void> {
+    const status = await this.getStatus();
+    const hasUpstream = !!status.upstream;
+
+    const resolvedRemote = remote ?? 'origin';
+    const resolvedBranch = branch ?? status.currentBranch ?? 'main';
+
     const args = ['push'];
 
-    if (setUpstream) {
-      args.push('-u');
-    }
-
-    if (remote) {
-      args.push(remote);
-    }
-
-    if (branch) {
-      args.push(branch);
+    // Automatically set upstream when the branch has no tracking remote yet
+    if (setUpstream || !hasUpstream) {
+      args.push('-u', resolvedRemote, resolvedBranch);
+    } else {
+      if (remote) args.push(remote);
+      if (branch) args.push(branch);
     }
 
     await this.execGit(args);
