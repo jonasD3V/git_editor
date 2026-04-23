@@ -501,12 +501,39 @@ export class Repository {
     const hasUpstream = !!status.upstream;
 
     if (hasUpstream && !remote) {
-      await this.execGit(['pull']);
+      await this.execGit(['pull', '--no-rebase']);
     } else {
       const resolvedRemote = remote ?? 'origin';
       const resolvedBranch = status.currentBranch ?? 'main';
-      await this.execGit(['pull', resolvedRemote, resolvedBranch]);
+      await this.execGit(['pull', '--no-rebase', resolvedRemote, resolvedBranch]);
     }
+  }
+
+  async pullRebase(remote?: string): Promise<void> {
+    const status = await this.getStatus();
+    const resolvedRemote = remote ?? 'origin';
+    const resolvedBranch = status.currentBranch ?? 'main';
+    const hasUpstream = !!status.upstream;
+
+    if (hasUpstream && !remote) {
+      await this.execGit(['pull', '--rebase']);
+    } else {
+      await this.execGit(['pull', '--rebase', resolvedRemote, resolvedBranch]);
+    }
+  }
+
+  async resetToRemote(remote = 'origin'): Promise<void> {
+    const status = await this.getStatus();
+    const branch = status.currentBranch ?? 'main';
+    await this.execGit(['fetch', remote]);
+    await this.execGit(['reset', '--hard', `${remote}/${branch}`]);
+  }
+
+  async pushForce(remote?: string, branch?: string): Promise<void> {
+    const status = await this.getStatus();
+    const resolvedRemote = remote ?? 'origin';
+    const resolvedBranch = branch ?? status.currentBranch ?? 'main';
+    await this.execGit(['push', '--force-with-lease', resolvedRemote, resolvedBranch]);
   }
 
   /**

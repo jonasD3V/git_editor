@@ -22,7 +22,10 @@ interface RepositoryScreenProps {
 
 export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository, onInitRepository, gitVersion }: RepositoryScreenProps) {
   const [sidePanel, setSidePanel] = useState<null | 'remotes' | 'ssh' | 'config'>(null);
-  const [notification, setNotification] = useState<{ message: string; isPullPushError: boolean } | null>(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    kind: 'error' | 'push-rejected' | 'divergent';
+  } | null>(null);
   const [diffContent, setDiffContent] = useState<string | null>(null);
   const [diffTitle, setDiffTitle] = useState<string | undefined>(undefined);
   const [isDiffLoading, setIsDiffLoading] = useState(false);
@@ -53,6 +56,9 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
     createCommit,
     fetch,
     pull,
+    pullRebase,
+    resetToRemote,
+    pushForce,
     push,
     addRemote,
     removeRemote,
@@ -183,47 +189,29 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
     }
   };
 
-  const handleFetch = async () => {
+  const runWithNotification = async (fn: () => Promise<void>) => {
     setNotification(null);
     try {
-      await fetch();
+      await fn();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Fetch failed';
-      setNotification({ message: msg, isPullPushError: false });
+      const msg = err instanceof Error ? err.message : 'Operation failed';
+      const isDivergent = msg.includes('divergent') || msg.includes('reconcile') || msg.includes('Need to specify how');
+      const isPushRejected = msg.includes('non-fast-forward') || (msg.includes('rejected') && !isDivergent);
+      setNotification({
+        message: msg,
+        kind: isDivergent ? 'divergent' : isPushRejected ? 'push-rejected' : 'error',
+      });
     }
   };
 
-  const handlePull = async () => {
-    setNotification(null);
-    try {
-      await pull();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Pull failed';
-      setNotification({ message: msg, isPullPushError: false });
-    }
-  };
+  const handleFetch = () => runWithNotification(() => fetch());
+  const handlePull  = () => runWithNotification(() => pull());
+  const handlePush  = () => runWithNotification(() => push());
 
-  const handlePush = async () => {
-    setNotification(null);
-    try {
-      await push();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Push failed';
-      const isNonFastForward = msg.includes('non-fast-forward') || msg.includes('rejected');
-      setNotification({ message: msg, isPullPushError: isNonFastForward });
-    }
-  };
-
-  const handlePullThenPush = async () => {
-    setNotification(null);
-    try {
-      await pull();
-      await push();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Pull & Push failed';
-      setNotification({ message: msg, isPullPushError: false });
-    }
-  };
+  const handlePullThenPush    = () => runWithNotification(async () => { await pull();       await push(); });
+  const handlePullRebase      = () => runWithNotification(() => pullRebase());
+  const handleResetToRemote   = () => runWithNotification(() => resetToRemote());
+  const handlePushForce       = () => runWithNotification(() => pushForce());
 
   const getRemotePlatform = (url: string) => {
     if (url.includes('github.com')) return 'GitHub';
@@ -264,14 +252,18 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
   if (!repository) {
     return (
       <div style={styles.centerContainer}>
-        <div style={styles.welcomeText}>Welcome to Git GUI</div>
-        <div style={styles.instructionText}>Open an existing repository or create a new one</div>
-        <div style={{ ...styles.buttonGroup, marginTop: '20px' }}>
-          <button style={styles.openButton} onClick={onOpenRepository}>
-            Open Repository
+        <div style={styles.welcomeText}>Git GUI</div>
+        <div style={styles.instructionText}>Open an existing repository or initialize a new one</div>
+        <div style={styles.welcomeActions}>
+          <button style={styles.welcomeBtn} onClick={onOpenRepository}>
+            <span style={styles.welcomeBtnIcon}>📂</span>
+            <span style={styles.welcomeBtnLabel}>Open Repository</span>
+            <span style={styles.welcomeBtnDesc}>Open a folder that already contains a git repo</span>
           </button>
-          <button style={{ ...styles.openButton, backgroundColor: colors.accent.secondary, marginTop: 0 }} onClick={onInitRepository}>
-            Init Repository
+          <button style={{ ...styles.welcomeBtn, ...styles.welcomeBtnSecondary }} onClick={onInitRepository}>
+            <span style={styles.welcomeBtnIcon}>✦</span>
+            <span style={styles.welcomeBtnLabel}>New Repository</span>
+            <span style={styles.welcomeBtnDesc}>Initialize git in an existing or new folder</span>
           </button>
         </div>
       </div>
@@ -354,16 +346,52 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
       </div>
 
       {/* Notification banner */}
-      {notification && (
+      {notification && notification.kind !== 'divergent' && (
         <div style={styles.notificationBar}>
           <span style={styles.notificationText}>{notification.message}</span>
           <div style={styles.notificationActions}>
-            {notification.isPullPushError && (
+            {notification.kind === 'push-rejected' && (
               <button style={styles.notificationPrimaryBtn} onClick={() => void handlePullThenPush()}>
                 Pull &amp; Push
               </button>
             )}
             <button style={styles.notificationDismiss} onClick={() => setNotification(null)}>✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* Divergent branch resolution card */}
+      {notification?.kind === 'divergent' && (
+        <div style={styles.divergentCard}>
+          <div style={styles.divergentHeader}>
+            <span style={styles.divergentTitle}>⚠ Divergent branches — choose how to reconcile</span>
+            <button style={styles.notificationDismiss} onClick={() => setNotification(null)}>✕</button>
+          </div>
+          <div style={styles.divergentOptions}>
+            <button style={styles.divergentOption} onClick={() => void handlePullThenPush()}>
+              <span style={styles.divergentOptionTitle}>Merge</span>
+              <span style={styles.divergentOptionDesc}>Pull remote changes into local, then push. Creates a merge commit.</span>
+            </button>
+            <button style={styles.divergentOption} onClick={() => void handlePullRebase()}>
+              <span style={styles.divergentOptionTitle}>Rebase</span>
+              <span style={styles.divergentOptionDesc}>Replay my commits on top of remote. Keeps history linear.</span>
+            </button>
+            <button style={{ ...styles.divergentOption, ...styles.divergentOptionDanger }} onClick={() => {
+              if (window.confirm('This will discard ALL your local commits on this branch and replace them with the remote version. Continue?')) {
+                void handleResetToRemote();
+              }
+            }}>
+              <span style={styles.divergentOptionTitle}>Reset to remote</span>
+              <span style={styles.divergentOptionDesc}>Discard my local commits. Use remote version. Cannot be undone.</span>
+            </button>
+            <button style={{ ...styles.divergentOption, ...styles.divergentOptionDanger }} onClick={() => {
+              if (window.confirm('This will overwrite the remote branch with your local version. Other contributors may lose work. Continue?')) {
+                void handlePushForce();
+              }
+            }}>
+              <span style={styles.divergentOptionTitle}>Force push</span>
+              <span style={styles.divergentOptionDesc}>Overwrite remote with my local version. Dangerous for shared branches.</span>
+            </button>
           </div>
         </div>
       )}
@@ -516,6 +544,54 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 2px',
     lineHeight: 1,
   },
+  divergentCard: {
+    backgroundColor: '#2a2000',
+    borderBottom: `1px solid ${colors.accent.warning}55`,
+    padding: '12px 16px',
+    flexShrink: 0,
+  },
+  divergentHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '10px',
+  },
+  divergentTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.accent.warning,
+  },
+  divergentOptions: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap' as const,
+  },
+  divergentOption: {
+    flex: '1 1 180px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'flex-start',
+    gap: '4px',
+    padding: '10px 12px',
+    backgroundColor: colors.bg.tertiary,
+    border: `1px solid ${colors.border.default}`,
+    borderRadius: '4px',
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+  },
+  divergentOptionDanger: {
+    borderColor: colors.accent.error + '55',
+  },
+  divergentOptionTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+  },
+  divergentOptionDesc: {
+    fontSize: '11px',
+    color: colors.text.secondary,
+    lineHeight: '1.4',
+  },
   gitVersionBadge: {
     fontSize: '10px',
     color: colors.text.disabled,
@@ -658,13 +734,51 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: typography.fontFamily.sans,
   },
   welcomeText: {
-    fontSize: typography.fontSize.xl,
+    fontSize: '28px',
     fontWeight: typography.fontWeight.semibold,
-    marginBottom: '12px',
+    marginBottom: '8px',
+    color: colors.text.primary,
   },
   instructionText: {
-    fontSize: typography.fontSize.md,
+    fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
+    marginBottom: '32px',
+  },
+  welcomeActions: {
+    display: 'flex',
+    gap: '16px',
+  },
+  welcomeBtn: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '6px',
+    width: '180px',
+    padding: '24px 16px',
+    backgroundColor: colors.bg.secondary,
+    border: `1px solid ${colors.border.default}`,
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'border-color 0.15s',
+    color: colors.text.primary,
+  },
+  welcomeBtnSecondary: {
+    borderColor: colors.accent.primary + '66',
+  },
+  welcomeBtnIcon: {
+    fontSize: '28px',
+    marginBottom: '4px',
+  },
+  welcomeBtnLabel: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+  },
+  welcomeBtnDesc: {
+    fontSize: '11px',
+    color: colors.text.secondary,
+    textAlign: 'center' as const,
+    lineHeight: '1.4',
   },
   loadingText: {
     fontSize: typography.fontSize.md,

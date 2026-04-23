@@ -389,6 +389,27 @@ export function useRepository() {
     await refresh();
   }, [refresh]);
 
+  const pullRebase = useCallback(async (remoteName?: string) => {
+    const activeRepo = useRepositoryStore.getState().repository;
+    if (!activeRepo) return;
+    await activeRepo.pullRebase(remoteName);
+    await refresh();
+  }, [refresh]);
+
+  const resetToRemote = useCallback(async (remoteName?: string) => {
+    const activeRepo = useRepositoryStore.getState().repository;
+    if (!activeRepo) return;
+    await activeRepo.resetToRemote(remoteName);
+    await refresh();
+  }, [refresh]);
+
+  const pushForce = useCallback(async (remoteName?: string, branchName?: string) => {
+    const activeRepo = useRepositoryStore.getState().repository;
+    if (!activeRepo) return;
+    await activeRepo.pushForce(remoteName, branchName);
+    await refresh();
+  }, [refresh]);
+
   /**
    * Push to remote
    */
@@ -592,6 +613,9 @@ export function useRepository() {
     dropStash,
     getFileDiff,
     getCommitDiff,
+    pullRebase,
+    resetToRemote,
+    pushForce,
     reset,
   };
 }
