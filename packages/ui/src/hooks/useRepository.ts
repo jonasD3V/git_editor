@@ -375,16 +375,9 @@ export function useRepository() {
   const fetch = useCallback(async (remoteName?: string) => {
     const activeRepo = useRepositoryStore.getState().repository;
     if (!activeRepo) return;
-    setError(null);
-    try {
-      await activeRepo.fetch(remoteName);
-      await refresh();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch';
-      setError(message);
-      throw err;
-    }
-  }, [refresh, setError]);
+    await activeRepo.fetch(remoteName);
+    await refresh();
+  }, [refresh]);
 
   /**
    * Pull from remote
@@ -392,16 +385,9 @@ export function useRepository() {
   const pull = useCallback(async (remoteName?: string) => {
     const activeRepo = useRepositoryStore.getState().repository;
     if (!activeRepo) return;
-    setError(null);
-    try {
-      await activeRepo.pull(remoteName);
-      await refresh();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to pull';
-      setError(message);
-      throw err;
-    }
-  }, [refresh, setError]);
+    await activeRepo.pull(remoteName);
+    await refresh();
+  }, [refresh]);
 
   /**
    * Push to remote
@@ -409,16 +395,9 @@ export function useRepository() {
   const push = useCallback(async (remoteName?: string, branchName?: string) => {
     const activeRepo = useRepositoryStore.getState().repository;
     if (!activeRepo) return;
-    setError(null);
-    try {
-      await activeRepo.push(remoteName, branchName);
-      await refresh();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to push';
-      setError(message);
-      throw err;
-    }
-  }, [refresh, setError]);
+    await activeRepo.push(remoteName, branchName);
+    await refresh();
+  }, [refresh]);
 
   /**
    * Add a remote

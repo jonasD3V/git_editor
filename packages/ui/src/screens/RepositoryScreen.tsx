@@ -22,6 +22,7 @@ interface RepositoryScreenProps {
 
 export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository, onInitRepository, gitVersion }: RepositoryScreenProps) {
   const [sidePanel, setSidePanel] = useState<null | 'remotes' | 'ssh' | 'config'>(null);
+  const [notification, setNotification] = useState<{ message: string; isPullPushError: boolean } | null>(null);
   const [diffContent, setDiffContent] = useState<string | null>(null);
   const [diffTitle, setDiffTitle] = useState<string | undefined>(undefined);
   const [isDiffLoading, setIsDiffLoading] = useState(false);
@@ -182,6 +183,48 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
     }
   };
 
+  const handleFetch = async () => {
+    setNotification(null);
+    try {
+      await fetch();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Fetch failed';
+      setNotification({ message: msg, isPullPushError: false });
+    }
+  };
+
+  const handlePull = async () => {
+    setNotification(null);
+    try {
+      await pull();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Pull failed';
+      setNotification({ message: msg, isPullPushError: false });
+    }
+  };
+
+  const handlePush = async () => {
+    setNotification(null);
+    try {
+      await push();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Push failed';
+      const isNonFastForward = msg.includes('non-fast-forward') || msg.includes('rejected');
+      setNotification({ message: msg, isPullPushError: isNonFastForward });
+    }
+  };
+
+  const handlePullThenPush = async () => {
+    setNotification(null);
+    try {
+      await pull();
+      await push();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Pull & Push failed';
+      setNotification({ message: msg, isPullPushError: false });
+    }
+  };
+
   const getRemotePlatform = (url: string) => {
     if (url.includes('github.com')) return 'GitHub';
     if (url.includes('gitlab.com')) return 'GitLab';
@@ -291,9 +334,9 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
               >
                 {isLoadingStatus ? '⏳' : '🔄'}
               </button>
-              <button style={styles.actionButton} onClick={() => void fetch()} title="Fetch from remote">Fetch</button>
-              <button style={styles.actionButton} onClick={() => void pull()} title="Pull from remote">Pull</button>
-              <button style={styles.actionButton} onClick={() => void push()} title="Push to remote">Push</button>
+              <button style={styles.actionButton} onClick={() => void handleFetch()} title="Fetch from remote">Fetch</button>
+              <button style={styles.actionButton} onClick={() => void handlePull()} title="Pull from remote">Pull</button>
+              <button style={styles.actionButton} onClick={() => void handlePush()} title="Push to remote">Push</button>
             </div>
             {status && (
               <span style={styles.status}>
@@ -309,6 +352,21 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
           </div>
         </div>
       </div>
+
+      {/* Notification banner */}
+      {notification && (
+        <div style={styles.notificationBar}>
+          <span style={styles.notificationText}>{notification.message}</span>
+          <div style={styles.notificationActions}>
+            {notification.isPullPushError && (
+              <button style={styles.notificationPrimaryBtn} onClick={() => void handlePullThenPush()}>
+                Pull &amp; Push
+              </button>
+            )}
+            <button style={styles.notificationDismiss} onClick={() => setNotification(null)}>✕</button>
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <div style={styles.content}>
@@ -412,6 +470,51 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '12px 16px',
     backgroundColor: colors.bg.secondary,
     borderBottom: `1px solid ${colors.border.default}`,
+  },
+  notificationBar: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '12px',
+    padding: '10px 16px',
+    backgroundColor: '#3a1f1f',
+    borderBottom: `1px solid ${colors.accent.error}55`,
+    flexShrink: 0,
+  },
+  notificationText: {
+    flex: 1,
+    fontSize: typography.fontSize.xs,
+    color: colors.accent.error,
+    fontFamily: typography.fontFamily.mono,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    lineHeight: '1.5',
+  },
+  notificationActions: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  notificationPrimaryBtn: {
+    padding: '4px 12px',
+    backgroundColor: colors.accent.primary,
+    color: 'white',
+    border: 'none',
+    borderRadius: '3px',
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+  },
+  notificationDismiss: {
+    background: 'none',
+    border: 'none',
+    color: colors.text.secondary,
+    cursor: 'pointer',
+    fontSize: '14px',
+    padding: '0 2px',
+    lineHeight: 1,
   },
   gitVersionBadge: {
     fontSize: '10px',
