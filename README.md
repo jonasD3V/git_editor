@@ -2,7 +2,7 @@
 
 A cross-platform Git GUI built entirely with [Claude Code](https://claude.ai/code) — no manual coding, just vibe.
 
-> **Experiment:** This project was written 100% through AI-assisted development ("vibecoding") using Claude Code as the sole developer. Every component, every bug fix, every architectural decision was done through conversation with Claude — no line of code was written by hand.
+> **Experiment:** This project was written 100% through AI-assisted development ("vibecoding") using Claude Code as the sole developer. Every component, every bug fix was done through conversation with Claude — no line of code was written by hand. Only parts of the Architecture and same Design Choices are done by me.
 
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
