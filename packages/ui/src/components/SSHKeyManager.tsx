@@ -153,7 +153,7 @@ export function SSHKeyManager() {
                     style={{
                       ...styles.actionBtn,
                       color: colors.accent.error,
-                      borderColor: colors.accent.error + '55',
+                      borderColor: colors.accent.errorBorder,
                     }}
                     onClick={() => void handleDelete(key)}
                     title="Delete key pair"
@@ -360,7 +360,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   actionBtnSuccess: {
     color: colors.git.added,
-    borderColor: colors.git.added + '66',
+    borderColor: colors.git.addedBorder,
   },
   fingerprint: {
     fontSize: '11px',
@@ -442,9 +442,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: typography.fontSize.xs,
     color: colors.accent.error,
     padding: '6px 10px',
-    backgroundColor: colors.accent.error + '18',
+    backgroundColor: colors.accent.errorSubtleBg,
     borderRadius: '3px',
-    border: `1px solid ${colors.accent.error + '44'}`,
+    border: `1px solid ${colors.accent.errorBorder}`,
   },
   hint: {
     fontSize: typography.fontSize.xs,

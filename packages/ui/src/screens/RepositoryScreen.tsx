@@ -8,6 +8,7 @@ import { DiffViewer } from '../components/DiffViewer';
 import { FileList } from '../components/FileList';
 import { GitConfigPanel } from '../components/GitConfigPanel';
 import { RemoteList } from '../components/RemoteList';
+import { ResizeHandle, useResizePanel } from '../components/ResizeHandle';
 import { SSHKeyManager } from '../components/SSHKeyManager';
 import { StashList } from '../components/StashList';
 import { useRepository } from '../hooks/useRepository';
@@ -18,6 +19,7 @@ interface RepositoryScreenProps {
   shouldInit?: boolean;
   onOpenRepository?: () => void;
   onInitRepository?: () => void;
+  onCloneRepository?: (url: string) => void;
   gitVersion?: string;
 }
 
@@ -26,11 +28,23 @@ export function RepositoryScreen({
   shouldInit,
   onOpenRepository,
   onInitRepository,
+  onCloneRepository,
   gitVersion,
 }: RepositoryScreenProps) {
   const [sidePanel, setSidePanel] = useState<
     null | 'remotes' | 'ssh' | 'config'
   >(null);
+  const [showCloneForm, setShowCloneForm] = useState(false);
+  const [cloneUrl, setCloneUrl] = useState('');
+
+  // Resizable panel widths (horizontal)
+  const [sidebarWidth, handleSidebarResize] = useResizePanel(360, 180, 600);
+  const [commitPanelWidth, handleCommitPanelResize] = useResizePanel(320, 160, 520);
+
+  // Resizable section heights inside the sidebar (vertical)
+  const [commitPanelHeight, handleCommitPanelResizeHeight] = useResizePanel(160, 80, 400, 'vertical', true);
+  const [stashHeight, handleStashResize] = useResizePanel(150, 60, 360, 'vertical', true);
+  const [branchHeight, handleBranchResize] = useResizePanel(200, 80, 480, 'vertical', true);
   const [notification, setNotification] = useState<{
     message: string;
     kind: 'error' | 'push-rejected' | 'divergent' | 'unrelated-histories';
@@ -306,7 +320,7 @@ export function RepositoryScreen({
       <div style={styles.centerContainer}>
         <div style={styles.welcomeText}>Git GUI</div>
         <div style={styles.instructionText}>
-          Open an existing repository or initialize a new one
+          Open an existing repository, initialize a new one, or clone from a URL
         </div>
         <div style={styles.welcomeActions}>
           <button style={styles.welcomeBtn} onClick={onOpenRepository}>
@@ -326,7 +340,48 @@ export function RepositoryScreen({
               Initialize git in an existing or new folder
             </span>
           </button>
+          <button
+            style={{ ...styles.welcomeBtn, ...styles.welcomeBtnClone }}
+            onClick={() => setShowCloneForm((v) => !v)}
+          >
+            <span style={styles.welcomeBtnIcon}>⬇</span>
+            <span style={styles.welcomeBtnLabel}>Clone Repository</span>
+            <span style={styles.welcomeBtnDesc}>
+              Clone a remote repository to your machine
+            </span>
+          </button>
         </div>
+        {showCloneForm && (
+          <div style={styles.cloneForm}>
+            <input
+              style={styles.cloneInput}
+              placeholder="Repository URL (https:// or git@...)"
+              value={cloneUrl}
+              onChange={(e) => setCloneUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && cloneUrl.trim()) {
+                  onCloneRepository?.(cloneUrl.trim());
+                  setCloneUrl('');
+                  setShowCloneForm(false);
+                }
+              }}
+              autoFocus
+            />
+            <button
+              style={styles.cloneSubmitBtn}
+              disabled={!cloneUrl.trim()}
+              onClick={() => {
+                if (cloneUrl.trim()) {
+                  onCloneRepository?.(cloneUrl.trim());
+                  setCloneUrl('');
+                  setShowCloneForm(false);
+                }
+              }}
+            >
+              Select Destination &amp; Clone
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -667,7 +722,8 @@ export function RepositoryScreen({
         ) : (
           <>
             {/* Sidebar: Changes + Stash + Branches */}
-            <div style={styles.sidebar}>
+            <div style={{ ...styles.sidebar, width: sidebarWidth }}>
+              {/* Changes section – takes remaining space */}
               <div style={styles.sidebarSection}>
                 <div style={styles.sidebarHeader}>Changes</div>
                 <div style={styles.fileListContainer}>
@@ -682,18 +738,34 @@ export function RepositoryScreen({
                     onFileClick={handleFileClick}
                   />
                 </div>
-                <CommitPanel
-                  onCommit={handleCommit}
-                  onStash={handleStash}
-                  disabled={status?.isClean}
+                
+                <ResizeHandle
+                  direction="vertical"
+                  onMouseDown={handleCommitPanelResizeHeight}
                 />
+                
+                <div style={{ flexShrink: 0, height: commitPanelHeight, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <CommitPanel
+                    onCommit={handleCommit}
+                    onStash={handleStash}
+                    disabled={status?.isClean}
+                  />
+                </div>
               </div>
 
+              {/* Drag handle above Stash */}
+              <ResizeHandle
+                direction="vertical"
+                onMouseDown={handleStashResize}
+              />
+
+              {/* Stash section */}
               <div
                 style={{
                   ...styles.sidebarSection,
-                  flex: 0,
-                  minHeight: '150px',
+                  flex: '0 1 auto',
+                  height: stashHeight,
+                  minHeight: 40,
                   borderTop: `1px solid ${colors.border.default}`,
                 }}
               >
@@ -705,11 +777,19 @@ export function RepositoryScreen({
                 />
               </div>
 
+              {/* Drag handle above Branches */}
+              <ResizeHandle
+                direction="vertical"
+                onMouseDown={handleBranchResize}
+              />
+
+              {/* Branches section */}
               <div
                 style={{
                   ...styles.sidebarSection,
-                  flex: 0,
-                  minHeight: '200px',
+                  flex: '0 1 auto',
+                  height: branchHeight,
+                  minHeight: 40,
                   borderTop: `1px solid ${colors.border.default}`,
                 }}
               >
@@ -724,8 +804,14 @@ export function RepositoryScreen({
               </div>
             </div>
 
-            {/* Commit list (fixed width) */}
-            <div style={styles.commitPanel}>
+            {/* Drag handle: Sidebar | Commits */}
+            <ResizeHandle
+              direction="horizontal"
+              onMouseDown={handleSidebarResize}
+            />
+
+            {/* Commit list */}
+            <div style={{ ...styles.commitPanel, width: commitPanelWidth }}>
               <div style={styles.panelHeader}>
                 <span>Commits</span>
                 {isLoadingCommits && (
@@ -739,6 +825,12 @@ export function RepositoryScreen({
                 onCheckoutCommit={handleCheckoutCommit}
               />
             </div>
+
+            {/* Drag handle: Commits | Diff */}
+            <ResizeHandle
+              direction="horizontal"
+              onMouseDown={handleCommitPanelResize}
+            />
 
             {/* Diff viewer */}
             <div style={styles.diffPanel}>
@@ -778,8 +870,8 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     gap: '12px',
     padding: '10px 16px',
-    backgroundColor: '#3a1f1f',
-    borderBottom: `1px solid ${colors.accent.error}55`,
+    backgroundColor: colors.notification.errorBg,
+    borderBottom: `1px solid ${colors.accent.errorBorder}`,
     flexShrink: 0,
   },
   notificationText: {
@@ -818,8 +910,8 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1,
   },
   divergentCard: {
-    backgroundColor: '#2a2000',
-    borderBottom: `1px solid ${colors.accent.warning}55`,
+    backgroundColor: colors.notification.warningBg,
+    borderBottom: `1px solid ${colors.accent.warningBorder}`,
     padding: '12px 16px',
     flexShrink: 0,
   },
@@ -853,7 +945,7 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'left' as const,
   },
   divergentOptionDanger: {
-    borderColor: colors.accent.error + '55',
+    borderColor: colors.accent.errorBorder,
   },
   divergentOptionTitle: {
     fontSize: typography.fontSize.sm,
@@ -941,12 +1033,11 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
   },
   sidebar: {
-    width: '360px',
-    minWidth: '280px',
+    flexShrink: 0,
     backgroundColor: colors.bg.secondary,
-    borderRight: `1px solid ${colors.border.default}`,
     display: 'flex',
     flexDirection: 'column',
+    overflow: 'hidden',
   },
   sidebarSection: {
     display: 'flex',
@@ -967,11 +1058,9 @@ const styles: Record<string, React.CSSProperties> = {
     overflowY: 'auto',
   },
   commitPanel: {
-    width: '320px',
-    minWidth: '240px',
+    flexShrink: 0,
     display: 'flex',
     flexDirection: 'column',
-    borderRight: `1px solid ${colors.border.default}`,
     overflow: 'hidden',
   },
   diffPanel: {
@@ -1036,7 +1125,41 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.text.primary,
   },
   welcomeBtnSecondary: {
-    borderColor: colors.accent.primary + '66',
+    borderColor: colors.accent.primaryBorder,
+  },
+  welcomeBtnClone: {
+    borderColor: colors.accent.secondaryBorder,
+  },
+  cloneForm: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+    marginTop: '24px',
+    width: '480px',
+    padding: '20px',
+    backgroundColor: colors.bg.secondary,
+    borderRadius: '8px',
+    border: `1px solid ${colors.border.default}`,
+  },
+  cloneInput: {
+    backgroundColor: colors.bg.primary,
+    color: colors.text.primary,
+    border: `1px solid ${colors.border.default}`,
+    borderRadius: '4px',
+    padding: '8px 12px',
+    fontSize: typography.fontSize.sm,
+    outline: 'none',
+    fontFamily: typography.fontFamily.mono,
+  },
+  cloneSubmitBtn: {
+    padding: '8px 16px',
+    backgroundColor: colors.accent.primary,
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    cursor: 'pointer',
   },
   welcomeBtnIcon: {
     fontSize: '28px',

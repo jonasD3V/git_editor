@@ -1,61 +1,57 @@
-/**
- * Color palette for Git GUI
- * Flat, developer-friendly design
- */
-
 export const colors = {
-  // Background colors
   bg: {
-    primary: '#1e1e1e',
-    secondary: '#252526',
-    tertiary: '#2d2d30',
-    hover: '#2a2d2e',
+    primary:   'var(--bg-primary)',
+    secondary: 'var(--bg-secondary)',
+    tertiary:  'var(--bg-tertiary)',
+    hover:     'var(--bg-hover)',
   },
-
-  // Text colors
   text: {
-    primary: '#cccccc',
-    secondary: '#9d9d9d',
-    disabled: '#6e6e6e',
-    inverse: '#ffffff',
+    primary:   'var(--text-primary)',
+    secondary: 'var(--text-secondary)',
+    disabled:  'var(--text-disabled)',
+    inverse:   'var(--text-inverse)',
   },
-
-  // Accent colors
   accent: {
-    primary: '#007acc',
-    secondary: '#0098ff',
-    success: '#89d185',
-    warning: '#cca700',
-    error: '#f48771',
+    primary:   'var(--accent-primary)',
+    secondary: 'var(--accent-secondary)',
+    success:   'var(--accent-success)',
+    warning:   'var(--accent-warning)',
+    error:     'var(--accent-error)',
+    // pre-computed alpha variants – use these instead of `color + 'xx'`
+    primaryBorder:     'var(--accent-primary-border)',
+    secondaryBorder:   'var(--accent-secondary-border)',
+    errorBorder:       'var(--accent-error-border)',
+    errorSubtleBg:     'var(--accent-error-subtle-bg)',
+    warningBorder:     'var(--accent-warning-border)',
   },
-
-  // Git-specific colors
   git: {
-    added: '#89d185',
-    modified: '#e2c08d',
-    deleted: '#f48771',
-    renamed: '#75beff',
-    untracked: '#73c991',
-    conflicted: '#f48771',
+    added:      'var(--git-added)',
+    modified:   'var(--git-modified)',
+    deleted:    'var(--git-deleted)',
+    renamed:    'var(--git-renamed)',
+    untracked:  'var(--git-untracked)',
+    conflicted: 'var(--git-conflicted)',
+    addedSubtleBg: 'var(--git-added-subtle-bg)',
+    addedBorder:   'var(--git-added-border)',
   },
-
-  // Branch colors (for visualization)
   branch: [
-    '#007acc',
-    '#89d185',
-    '#e2c08d',
-    '#f48771',
-    '#75beff',
-    '#d18ce0',
-    '#73c991',
-    '#cca700',
-  ],
-
-  // Border colors
+    'var(--branch-0)',
+    'var(--branch-1)',
+    'var(--branch-2)',
+    'var(--branch-3)',
+    'var(--branch-4)',
+    'var(--branch-5)',
+    'var(--branch-6)',
+    'var(--branch-7)',
+  ] as string[],
   border: {
-    default: '#3e3e42',
-    focus: '#007acc',
-    subtle: '#2d2d30',
+    default: 'var(--border-default)',
+    focus:   'var(--border-focus)',
+    subtle:  'var(--border-subtle)',
+  },
+  notification: {
+    errorBg:   'var(--notification-error-bg)',
+    warningBg: 'var(--notification-warning-bg)',
   },
 };
 

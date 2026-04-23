@@ -87,11 +87,18 @@ export function useRepository() {
       setLoadingBranches(true);
 
       try {
-        const branchList = await activeRepo.getBranches();
-        console.log('Loaded', branchList.length, 'branches');
-        setBranches(branchList);
+        const [branchList, mergedNames] = await Promise.all([
+          activeRepo.getBranches(true),
+          activeRepo.getMergedBranchNames(),
+        ]);
+        const annotated = branchList.map((b: Branch) => ({
+          ...b,
+          isMerged: !b.isCurrent && mergedNames.has(b.fullName),
+        }));
+        console.log('Loaded', annotated.length, 'branches');
+        setBranches(annotated);
 
-        const current = branchList.find((b: Branch) => b.isCurrent);
+        const current = annotated.find((b: Branch) => b.isCurrent);
         setCurrentBranch(current || null);
       } catch (err) {
         console.error('Failed to load branches:', err);

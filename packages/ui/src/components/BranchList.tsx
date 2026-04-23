@@ -78,13 +78,24 @@ export function BranchList({
               style={{
                 ...styles.branchItem,
                 ...(branch.isCurrent ? styles.branchItemCurrent : {}),
+                ...(branch.isMerged ? styles.branchItemMerged : {}),
               }}
               onClick={() => onBranchClick?.(branch)}
             >
               {branch.isCurrent && (
                 <span style={styles.currentIndicator}>●</span>
               )}
-              <span style={styles.branchName}>{branch.name}</span>
+              <span
+                style={{
+                  ...styles.branchName,
+                  ...(branch.isMerged ? styles.branchNameMerged : {}),
+                }}
+              >
+                {branch.name}
+              </span>
+              {branch.isMerged && (
+                <span style={styles.mergedBadge}>merged</span>
+              )}
               {branch.upstream && (
                 <span style={styles.upstream}>
                   → {branch.upstream.replace('refs/remotes/', '')}
@@ -106,14 +117,31 @@ export function BranchList({
 
       {remoteBranches.length > 0 && (
         <div style={styles.section}>
-          <div style={styles.sectionHeader}>Remote Branches</div>
+          <div style={styles.sectionHeader}>
+            Remote Branches
+            <span style={styles.sectionCount}>{remoteBranches.length}</span>
+          </div>
           {remoteBranches.map((branch) => (
             <div
               key={branch.fullName}
-              style={styles.branchItem}
+              style={{
+                ...styles.branchItem,
+                ...(branch.isMerged ? styles.branchItemMerged : {}),
+              }}
               onClick={() => onBranchClick?.(branch)}
             >
-              <span style={styles.branchName}>{branch.name}</span>
+              <span style={styles.remoteIcon}>↳</span>
+              <span
+                style={{
+                  ...styles.branchName,
+                  ...(branch.isMerged ? styles.branchNameMerged : {}),
+                }}
+              >
+                {branch.name}
+              </span>
+              {branch.isMerged && (
+                <span style={styles.mergedBadge}>merged</span>
+              )}
             </div>
           ))}
         </div>
@@ -170,6 +198,19 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  sectionCount: {
+    fontSize: '10px',
+    backgroundColor: colors.bg.primary,
+    color: colors.text.secondary,
+    borderRadius: '8px',
+    padding: '1px 5px',
+    fontWeight: 'normal' as const,
+    letterSpacing: 0,
+    textTransform: 'none' as const,
   },
   branchItem: {
     display: 'flex',
@@ -203,6 +244,28 @@ const styles: Record<string, React.CSSProperties> = {
   upstream: {
     fontSize: typography.fontSize.xs,
     color: colors.text.secondary,
+  },
+  branchItemMerged: {
+    opacity: 0.6,
+  },
+  branchNameMerged: {
+    textDecoration: 'line-through',
+    color: colors.text.secondary,
+  },
+  mergedBadge: {
+    flexShrink: 0,
+    fontSize: '10px',
+    padding: '1px 5px',
+    borderRadius: '8px',
+    backgroundColor: colors.git.addedSubtleBg,
+    color: colors.git.added,
+    border: `1px solid ${colors.git.addedBorder}`,
+    fontWeight: 'normal' as const,
+  },
+  remoteIcon: {
+    fontSize: '10px',
+    color: colors.text.disabled,
+    flexShrink: 0,
   },
   deleteButton: {
     flexShrink: 0,

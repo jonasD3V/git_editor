@@ -48,6 +48,18 @@ ipcMain.handle('init-folder', async () => {
   return result.filePaths[0];
 });
 
+// Handle clone destination folder selection
+ipcMain.handle('select-clone-folder', async () => {
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Select Destination for Clone',
+    buttonLabel: 'Clone Here',
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,

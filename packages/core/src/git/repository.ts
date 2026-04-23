@@ -95,6 +95,21 @@ export class Repository {
     }
   }
 
+  static async clone(url: string, targetPath: string): Promise<Repository> {
+    try {
+      await fs.mkdir(targetPath, { recursive: true });
+      await execFileAsync('git', ['clone', url, targetPath]);
+      return new Repository(targetPath);
+    } catch (error) {
+      if (error instanceof Error && 'stderr' in error) {
+        throw new Error(
+          `Git clone failed: ${(error as { stderr: string }).stderr}`
+        );
+      }
+      throw error;
+    }
+  }
+
   /**
    * Gets the repository path
    */
@@ -202,6 +217,38 @@ export class Repository {
     const args = buildBranchListCommand(includeRemote);
     const output = await this.execGit(args);
     return parseBranchOutput(output);
+  }
+
+  async getMergedBranchNames(): Promise<Set<string>> {
+    const merged = new Set<string>();
+    try {
+      const localOut = await this.execGit([
+        'branch',
+        '--merged',
+        'HEAD',
+        '--format=%(refname)',
+      ]);
+      for (const line of localOut.trim().split('\n')) {
+        if (line.trim()) merged.add(line.trim());
+      }
+    } catch {
+      // no-op if HEAD doesn't exist yet
+    }
+    try {
+      const remoteOut = await this.execGit([
+        'branch',
+        '-r',
+        '--merged',
+        'HEAD',
+        '--format=%(refname)',
+      ]);
+      for (const line of remoteOut.trim().split('\n')) {
+        if (line.trim()) merged.add(line.trim());
+      }
+    } catch {
+      // no-op
+    }
+    return merged;
   }
 
   /**

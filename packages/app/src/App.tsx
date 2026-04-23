@@ -70,6 +70,28 @@ export function App() {
     }
   };
 
+  const handleCloneRepository = async (url: string) => {
+    const destination: string | null =
+      await ipcRenderer.invoke('select-clone-folder');
+    if (!destination) return;
+    try {
+      const { execFile } = window.require('child_process');
+      const { promisify } = window.require('util');
+      const execFileAsync = promisify(execFile) as (
+        cmd: string,
+        args: string[],
+        opts?: object
+      ) => Promise<{ stdout: string }>;
+      await execFileAsync('git', ['clone', url, destination]);
+      setShouldInit(false);
+      setRepositoryPath(destination);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'Clone failed';
+      alert(`Clone failed: ${msg}`);
+    }
+  };
+
   if (gitStatus === 'checking') {
     return <CenteredMessage>Checking requirements...</CenteredMessage>;
   }
@@ -111,6 +133,7 @@ export function App() {
       shouldInit={shouldInit}
       onOpenRepository={handleOpenRepository}
       onInitRepository={handleInitRepository}
+      onCloneRepository={handleCloneRepository}
       gitVersion={gitVersion}
     />
   );
@@ -118,7 +141,7 @@ export function App() {
 
 function CenteredMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ ...styles.center, color: '#9d9d9d', fontSize: '14px' }}>
+    <div style={{ ...styles.center, color: 'var(--text-secondary)', fontSize: '14px' }}>
       {children}
     </div>
   );
@@ -144,8 +167,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100vh',
-    backgroundColor: '#1e1e1e',
-    color: '#cccccc',
+    backgroundColor: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     padding: '40px',
     gap: '16px',
@@ -153,22 +176,22 @@ const styles: Record<string, React.CSSProperties> = {
   },
   errorIcon: {
     fontSize: '48px',
-    color: '#cca700',
+    color: 'var(--accent-warning)',
   },
   title: {
     fontSize: '22px',
     fontWeight: 600,
-    color: '#cccccc',
+    color: 'var(--text-primary)',
   },
   body: {
     fontSize: '14px',
-    color: '#9d9d9d',
+    color: 'var(--text-secondary)',
     maxWidth: '400px',
     lineHeight: '1.6',
   },
   platform: {
     fontSize: '13px',
-    color: '#9d9d9d',
+    color: 'var(--text-secondary)',
   },
   btnRow: {
     display: 'flex',
@@ -177,8 +200,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   primaryBtn: {
     padding: '10px 24px',
-    backgroundColor: '#007acc',
-    color: 'white',
+    backgroundColor: 'var(--accent-primary)',
+    color: 'var(--text-inverse)',
     border: 'none',
     borderRadius: '4px',
     fontSize: '14px',
@@ -187,16 +210,16 @@ const styles: Record<string, React.CSSProperties> = {
   },
   secondaryBtn: {
     padding: '10px 24px',
-    backgroundColor: '#2d2d30',
-    color: '#cccccc',
-    border: '1px solid #3e3e42',
+    backgroundColor: 'var(--bg-tertiary)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--border-default)',
     borderRadius: '4px',
     fontSize: '14px',
     cursor: 'pointer',
   },
   hint: {
     fontSize: '12px',
-    color: '#6e6e6e',
+    color: 'var(--text-disabled)',
     maxWidth: '420px',
     lineHeight: '1.6',
     marginTop: '8px',

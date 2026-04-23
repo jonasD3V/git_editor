@@ -53,6 +53,8 @@ export interface Branch {
   commit: string;
   /** Upstream branch name if set */
   upstream?: string;
+  /** Whether this branch has been merged into the current branch */
+  isMerged?: boolean;
 }
 
 /**

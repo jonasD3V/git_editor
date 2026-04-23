@@ -337,8 +337,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: typography.fontSize.xs,
     color: colors.accent.error,
     padding: '6px 10px',
-    backgroundColor: colors.accent.error + '18',
+    backgroundColor: colors.accent.errorSubtleBg,
     borderRadius: '3px',
-    border: `1px solid ${colors.accent.error + '44'}`,
+    border: `1px solid ${colors.accent.errorBorder}`,
   },
 };

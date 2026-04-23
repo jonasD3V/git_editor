@@ -16,21 +16,131 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling */
+/* ── Dark theme (default) ─────────────────────────────────── */
+:root {
+  --bg-primary:   #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary:  #2d2d30;
+  --bg-hover:     #2a2d2e;
+
+  --text-primary:   #cccccc;
+  --text-secondary: #9d9d9d;
+  --text-disabled:  #6e6e6e;
+  --text-inverse:   #ffffff;
+
+  --accent-primary:   #007acc;
+  --accent-secondary: #0098ff;
+  --accent-success:   #89d185;
+  --accent-warning:   #cca700;
+  --accent-error:     #f48771;
+
+  --accent-primary-border:   #007acc66;
+  --accent-secondary-border: #0098ff66;
+  --accent-error-border:     #f4877155;
+  --accent-error-subtle-bg:  #f4877118;
+  --accent-warning-border:   #cca70055;
+
+  --git-added:      #89d185;
+  --git-modified:   #e2c08d;
+  --git-deleted:    #f48771;
+  --git-renamed:    #75beff;
+  --git-untracked:  #73c991;
+  --git-conflicted: #f48771;
+  --git-added-subtle-bg: #89d18522;
+  --git-added-border:    #89d18566;
+
+  --branch-0: #007acc;
+  --branch-1: #89d185;
+  --branch-2: #e2c08d;
+  --branch-3: #f48771;
+  --branch-4: #75beff;
+  --branch-5: #d18ce0;
+  --branch-6: #73c991;
+  --branch-7: #cca700;
+
+  --border-default: #3e3e42;
+  --border-focus:   #007acc;
+  --border-subtle:  #2d2d30;
+
+  --notification-error-bg:   #3a1f1f;
+  --notification-warning-bg: #2a2000;
+
+  --scrollbar-track:       #1e1e1e;
+  --scrollbar-thumb:       #424242;
+  --scrollbar-thumb-hover: #4e4e4e;
+}
+
+/* ── Light theme ──────────────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-primary:   #f0f0f0;
+    --bg-secondary: #ffffff;
+    --bg-tertiary:  #e8e8e8;
+    --bg-hover:     #dde6f0;
+
+    --text-primary:   #1e1e1e;
+    --text-secondary: #666666;
+    --text-disabled:  #aaaaaa;
+    --text-inverse:   #ffffff;
+
+    --accent-primary:   #005fb8;
+    --accent-secondary: #0078d4;
+    --accent-success:   #107c10;
+    --accent-warning:   #7a5900;
+    --accent-error:     #c44e2a;
+
+    --accent-primary-border:   #005fb866;
+    --accent-secondary-border: #0078d466;
+    --accent-error-border:     #c44e2a66;
+    --accent-error-subtle-bg:  #c44e2a12;
+    --accent-warning-border:   #7a590055;
+
+    --git-added:      #107c10;
+    --git-modified:   #7a5900;
+    --git-deleted:    #c44e2a;
+    --git-renamed:    #0050a0;
+    --git-untracked:  #107c10;
+    --git-conflicted: #c44e2a;
+    --git-added-subtle-bg: #107c1015;
+    --git-added-border:    #107c1055;
+
+    --branch-0: #005fb8;
+    --branch-1: #1a7a1a;
+    --branch-2: #7a5000;
+    --branch-3: #b83a1e;
+    --branch-4: #0050a0;
+    --branch-5: #7a1ea0;
+    --branch-6: #005c40;
+    --branch-7: #7a6400;
+
+    --border-default: #cccccc;
+    --border-focus:   #0078d4;
+    --border-subtle:  #e0e0e0;
+
+    --notification-error-bg:   #fce8e4;
+    --notification-warning-bg: #fef8e0;
+
+    --scrollbar-track:       #e8e8e8;
+    --scrollbar-thumb:       #c0c0c0;
+    --scrollbar-thumb-hover: #a0a0a0;
+  }
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #424242;
+  background: var(--scrollbar-thumb);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4e4e4e;
+  background: var(--scrollbar-thumb-hover);
 }
