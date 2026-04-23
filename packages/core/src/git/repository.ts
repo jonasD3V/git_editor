@@ -497,11 +497,16 @@ export class Repository {
    * @param remote - Remote name (defaults to current upstream)
    */
   async pull(remote?: string): Promise<void> {
-    const args = ['pull'];
-    if (remote) {
-      args.push(remote);
+    const status = await this.getStatus();
+    const hasUpstream = !!status.upstream;
+
+    if (hasUpstream && !remote) {
+      await this.execGit(['pull']);
+    } else {
+      const resolvedRemote = remote ?? 'origin';
+      const resolvedBranch = status.currentBranch ?? 'main';
+      await this.execGit(['pull', resolvedRemote, resolvedBranch]);
     }
-    await this.execGit(args);
   }
 
   /**
