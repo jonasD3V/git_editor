@@ -1,0 +1,72 @@
+{
+  "name": "@git-gui/app",
+  "version": "0.1.0",
+  "description": "Git GUI Electron Application",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
+    "dev:react": "vite",
+    "dev:electron": "tsc -p tsconfig.electron.json && wait-on http://localhost:5173 && NODE_ENV=development electron .",
+    "build": "vite build && tsc -p tsconfig.electron.json",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:win": "npm run build && electron-builder --win",
+    "build:linux": "npm run build && electron-builder --linux",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist build"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.12.7",
+    "@types/react": "18.2.79",
+    "@types/react-dom": "18.2.25",
+    "@vitejs/plugin-react": "4.2.1",
+    "concurrently": "8.2.2",
+    "electron": "30.0.2",
+    "electron-builder": "24.13.3",
+    "typescript": "5.4.5",
+    "vite": "5.2.10",
+    "vite-plugin-electron-renderer": "0.14.6",
+    "wait-on": "7.2.0"
+  },
+  "build": {
+    "appId": "com.gitgui.app",
+    "productName": "Git GUI",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "build"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["en_US", "de_DE"],
+      "include": "assets/installer.nsh"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development"
+    }
+  }
+}

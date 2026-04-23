@@ -1,0 +1,47 @@
+{
+  "name": "git-gui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A cross-platform, native Git GUI application",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "npm install && npm run build",
+    "dev:macos": "turbo run dev --filter=@git-gui/app",
+    "dev:windows": "turbo run dev --filter=@git-gui/app",
+    "dev:linux": "turbo run dev --filter=@git-gui/app",
+    "build": "turbo run build",
+    "build:macos": "turbo run build --filter=@git-gui/app",
+    "build:windows": "turbo run build --filter=@git-gui/app",
+    "build:linux": "turbo run build --filter=@git-gui/app",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test -- --coverage",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@types/node": "20.12.7",
+    "@typescript-eslint/eslint-plugin": "7.7.1",
+    "@typescript-eslint/parser": "7.7.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-react": "7.34.1",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "husky": "9.0.11",
+    "prettier": "3.2.5",
+    "turbo": "2.0.3",
+    "typescript": "5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.5.0"
+}

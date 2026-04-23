@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+.next
+*.log
+.turbo
+.git
+.github
+*.min.js
+*.bundle.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
