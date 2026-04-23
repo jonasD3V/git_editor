@@ -3,8 +3,9 @@
  * Displays and manages repository stashes
  */
 
-import React from 'react';
 import type { Stash } from '@git-gui/core/git/types';
+import React from 'react';
+
 import { colors, typography } from '../theme';
 
 interface StashListProps {
@@ -14,7 +15,12 @@ interface StashListProps {
   onDrop?: (index: number) => void;
 }
 
-export function StashList({ stashes = [], onApply, onPop, onDrop }: StashListProps) {
+export function StashList({
+  stashes = [],
+  onApply,
+  onPop,
+  onDrop,
+}: StashListProps) {
   if (!stashes || stashes.length === 0) {
     return (
       <div style={styles.empty}>
@@ -33,9 +39,27 @@ export function StashList({ stashes = [], onApply, onPop, onDrop }: StashListPro
             <span style={styles.stashMessage}>{stash.message}</span>
           </div>
           <div style={styles.stashActions}>
-            <button style={styles.actionButton} onClick={() => onApply?.(stash.index)} title="Apply stash (keep in list)">Apply</button>
-            <button style={styles.actionButton} onClick={() => onPop?.(stash.index)} title="Pop stash (apply and remove)">Pop</button>
-            <button style={{ ...styles.actionButton, color: colors.accent.error }} onClick={() => onDrop?.(stash.index)} title="Drop stash">Drop</button>
+            <button
+              style={styles.actionButton}
+              onClick={() => onApply?.(stash.index)}
+              title="Apply stash (keep in list)"
+            >
+              Apply
+            </button>
+            <button
+              style={styles.actionButton}
+              onClick={() => onPop?.(stash.index)}
+              title="Pop stash (apply and remove)"
+            >
+              Pop
+            </button>
+            <button
+              style={{ ...styles.actionButton, color: colors.accent.error }}
+              onClick={() => onDrop?.(stash.index)}
+              title="Drop stash"
+            >
+              Drop
+            </button>
           </div>
         </div>
       ))}

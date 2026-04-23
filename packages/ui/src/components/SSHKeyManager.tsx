@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import { SSHManager } from '@git-gui/core/ssh';
 import type { SSHKeyInfo } from '@git-gui/core/ssh';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import { colors, typography } from '../theme';
 
 const sshManager = new SSHManager();
@@ -32,7 +33,9 @@ export function SSHKeyManager() {
     }
   }, []);
 
-  useEffect(() => { void loadKeys(); }, [loadKeys]);
+  useEffect(() => {
+    void loadKeys();
+  }, [loadKeys]);
 
   const handleCopy = async (key: SSHKeyInfo) => {
     try {
@@ -53,7 +56,12 @@ export function SSHKeyManager() {
   };
 
   const handleDelete = async (key: SSHKeyInfo) => {
-    if (!window.confirm(`Delete SSH key "${key.name}"?\n\nThis deletes both the private and public key file. This cannot be undone.`)) return;
+    if (
+      !window.confirm(
+        `Delete SSH key "${key.name}"?\n\nThis deletes both the private and public key file. This cannot be undone.`
+      )
+    )
+      return;
     try {
       await sshManager.deleteKey(key.name);
       await loadKeys();
@@ -92,13 +100,21 @@ export function SSHKeyManager() {
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             Existing Keys
-            <button style={styles.refreshBtn} onClick={loadKeys} title="Refresh">↺</button>
+            <button
+              style={styles.refreshBtn}
+              onClick={loadKeys}
+              title="Refresh"
+            >
+              ↺
+            </button>
           </div>
 
           {isLoading && <div style={styles.hint}>Loading...</div>}
           {error && <div style={styles.errorMsg}>{error}</div>}
           {!isLoading && keys.length === 0 && (
-            <div style={styles.hint}>No SSH keys found in {sshManager.getSshDir()}</div>
+            <div style={styles.hint}>
+              No SSH keys found in {sshManager.getSshDir()}
+            </div>
           )}
 
           {keys.map((key) => (
@@ -107,25 +123,38 @@ export function SSHKeyManager() {
                 <div style={styles.keyMeta}>
                   <span style={styles.keyName}>{key.name}</span>
                   <span style={styles.keyType}>{key.type.toUpperCase()}</span>
-                  {!key.hasPrivateKey && <span style={styles.noPubKey}>public only</span>}
+                  {!key.hasPrivateKey && (
+                    <span style={styles.noPubKey}>public only</span>
+                  )}
                 </div>
                 <div style={styles.keyActions}>
                   <button
                     style={styles.actionBtn}
-                    onClick={() => setExpandedKey(expandedKey === key.name ? null : key.name)}
+                    onClick={() =>
+                      setExpandedKey(expandedKey === key.name ? null : key.name)
+                    }
                     title="Show public key"
                   >
                     {expandedKey === key.name ? 'Hide' : 'Show'}
                   </button>
                   <button
-                    style={{ ...styles.actionBtn, ...(copiedKey === key.name ? styles.actionBtnSuccess : {}) }}
+                    style={{
+                      ...styles.actionBtn,
+                      ...(copiedKey === key.name
+                        ? styles.actionBtnSuccess
+                        : {}),
+                    }}
                     onClick={() => void handleCopy(key)}
                     title="Copy public key to clipboard"
                   >
                     {copiedKey === key.name ? 'Copied!' : 'Copy'}
                   </button>
                   <button
-                    style={{ ...styles.actionBtn, color: colors.accent.error, borderColor: colors.accent.error + '55' }}
+                    style={{
+                      ...styles.actionBtn,
+                      color: colors.accent.error,
+                      borderColor: colors.accent.error + '55',
+                    }}
                     onClick={() => void handleDelete(key)}
                     title="Delete key pair"
                   >
@@ -169,7 +198,10 @@ export function SSHKeyManager() {
             {(['ed25519', 'rsa'] as const).map((t) => (
               <button
                 key={t}
-                style={{ ...styles.typeBtn, ...(genType === t ? styles.typeBtnActive : {}) }}
+                style={{
+                  ...styles.typeBtn,
+                  ...(genType === t ? styles.typeBtnActive : {}),
+                }}
                 onClick={() => setGenType(t)}
               >
                 {t === 'ed25519' ? 'Ed25519 (recommended)' : 'RSA 4096'}
@@ -177,7 +209,9 @@ export function SSHKeyManager() {
             ))}
           </div>
 
-          <label style={styles.label}>Comment (optional, e.g. your email)</label>
+          <label style={styles.label}>
+            Comment (optional, e.g. your email)
+          </label>
           <input
             style={styles.input}
             placeholder="you@example.com"
@@ -189,7 +223,10 @@ export function SSHKeyManager() {
           {genError && <div style={styles.errorMsg}>{genError}</div>}
 
           <button
-            style={{ ...styles.generateBtn, ...((!genName.trim() || isGenerating) ? styles.btnDisabled : {}) }}
+            style={{
+              ...styles.generateBtn,
+              ...(!genName.trim() || isGenerating ? styles.btnDisabled : {}),
+            }}
             onClick={() => void handleGenerate()}
             disabled={!genName.trim() || isGenerating}
           >
@@ -197,8 +234,8 @@ export function SSHKeyManager() {
           </button>
 
           <div style={styles.hint}>
-            After generating, copy the public key and add it to your GitHub / GitLab account under{' '}
-            <em>Settings → SSH Keys</em>.
+            After generating, copy the public key and add it to your GitHub /
+            GitLab account under <em>Settings → SSH Keys</em>.
           </div>
         </div>
       </div>

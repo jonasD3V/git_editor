@@ -59,8 +59,12 @@ describe('Repository', () => {
       const execFileAsync = promisify(execFile);
 
       await execFileAsync('git', ['init'], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
+      await execFileAsync('git', ['config', 'user.name', 'Test User'], {
+        cwd: tempDir,
+      });
+      await execFileAsync('git', ['config', 'user.email', 'test@example.com'], {
+        cwd: tempDir,
+      });
 
       repo = await Repository.open(tempDir);
     });
@@ -100,7 +104,10 @@ describe('Repository', () => {
       it('should get commit history', async () => {
         // Create multiple commits
         for (let i = 0; i < 3; i++) {
-          await fs.writeFile(path.join(tempDir, `file${i}.txt`), `content ${i}`);
+          await fs.writeFile(
+            path.join(tempDir, `file${i}.txt`),
+            `content ${i}`
+          );
           await repo.stage([`file${i}.txt`]);
           await repo.commit({ message: `Commit ${i}` });
         }
@@ -136,7 +143,9 @@ describe('Repository', () => {
       it('should list branches', async () => {
         const branches = await repo.getBranches();
         expect(branches.length).toBeGreaterThan(0);
-        const mainBranch = branches.find((b) => b.name === 'main' || b.name === 'master');
+        const mainBranch = branches.find(
+          (b) => b.name === 'main' || b.name === 'master'
+        );
         expect(mainBranch).toBeDefined();
       });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { colors, typography } from '../theme';
 
 interface DiffViewerProps {
@@ -19,7 +20,9 @@ export function DiffViewer({ diff, isLoading, title }: DiffViewerProps) {
   if (!diff) {
     return (
       <div style={styles.placeholder}>
-        <span style={styles.placeholderText}>Select a commit or file to view changes</span>
+        <span style={styles.placeholderText}>
+          Select a commit or file to view changes
+        </span>
       </div>
     );
   }
@@ -45,18 +48,36 @@ export function DiffViewer({ diff, isLoading, title }: DiffViewerProps) {
 
 function getLineStyle(line: string): React.CSSProperties {
   if (line.startsWith('+') && !line.startsWith('+++')) {
-    return { backgroundColor: 'rgba(137, 209, 133, 0.12)', color: colors.git.added };
+    return {
+      backgroundColor: 'rgba(137, 209, 133, 0.12)',
+      color: colors.git.added,
+    };
   }
   if (line.startsWith('-') && !line.startsWith('---')) {
-    return { backgroundColor: 'rgba(244, 135, 113, 0.12)', color: colors.git.deleted };
+    return {
+      backgroundColor: 'rgba(244, 135, 113, 0.12)',
+      color: colors.git.deleted,
+    };
   }
   if (line.startsWith('@@')) {
-    return { backgroundColor: 'rgba(0, 122, 204, 0.1)', color: colors.accent.secondary };
+    return {
+      backgroundColor: 'rgba(0, 122, 204, 0.1)',
+      color: colors.accent.secondary,
+    };
   }
-  if (line.startsWith('diff ') || line.startsWith('index ') || line.startsWith('--- ') || line.startsWith('+++ ')) {
+  if (
+    line.startsWith('diff ') ||
+    line.startsWith('index ') ||
+    line.startsWith('--- ') ||
+    line.startsWith('+++ ')
+  ) {
     return { color: colors.text.secondary };
   }
-  if (line.startsWith('commit ') || line.startsWith('Author:') || line.startsWith('Date:')) {
+  if (
+    line.startsWith('commit ') ||
+    line.startsWith('Author:') ||
+    line.startsWith('Date:')
+  ) {
     return { color: colors.accent.secondary };
   }
   return {};

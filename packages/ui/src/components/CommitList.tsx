@@ -3,9 +3,10 @@
  * Displays a list of commits
  */
 
-import React from 'react';
-import { format } from 'date-fns';
 import type { Commit } from '@git-gui/core/git/types';
+import { format } from 'date-fns';
+import React from 'react';
+
 import { colors, typography } from '../theme';
 
 interface CommitListProps {
@@ -15,7 +16,12 @@ interface CommitListProps {
   onCheckoutCommit?: (commit: Commit) => void;
 }
 
-export function CommitList({ commits, selectedSha, onCommitClick, onCheckoutCommit }: CommitListProps) {
+export function CommitList({
+  commits,
+  selectedSha,
+  onCommitClick,
+  onCheckoutCommit,
+}: CommitListProps) {
   if (commits.length === 0) {
     return (
       <div style={styles.empty}>
@@ -29,7 +35,13 @@ export function CommitList({ commits, selectedSha, onCommitClick, onCheckoutComm
       {commits.map((commit, index) => (
         <div
           key={commit.sha || index}
-          style={{ ...styles.commitItem, ...(selectedSha && (commit.sha === selectedSha || commit.shortSha === selectedSha) ? styles.commitItemSelected : {}) }}
+          style={{
+            ...styles.commitItem,
+            ...(selectedSha &&
+            (commit.sha === selectedSha || commit.shortSha === selectedSha)
+              ? styles.commitItemSelected
+              : {}),
+          }}
           onClick={() => onCommitClick?.(commit)}
         >
           <div style={styles.commitHeader}>
@@ -38,7 +50,10 @@ export function CommitList({ commits, selectedSha, onCommitClick, onCheckoutComm
             <span style={styles.commitDate}>
               {(() => {
                 try {
-                  const date = typeof commit.date === 'string' ? new Date(commit.date) : commit.date;
+                  const date =
+                    typeof commit.date === 'string'
+                      ? new Date(commit.date)
+                      : commit.date;
                   return format(date, 'MMM d, yyyy HH:mm');
                 } catch {
                   return 'Unknown date';
@@ -49,20 +64,25 @@ export function CommitList({ commits, selectedSha, onCommitClick, onCheckoutComm
               <button
                 style={styles.checkoutBtn}
                 title="Checkout this commit (detached HEAD)"
-                onClick={(e) => { e.stopPropagation(); onCheckoutCommit(commit); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCheckoutCommit(commit);
+                }}
               >
                 Checkout
               </button>
             )}
           </div>
           <div style={styles.commitMessage}>{commit.message}</div>
-          {commit.refs && commit.refs.filter(r => r.trim()).length > 0 && (
+          {commit.refs && commit.refs.filter((r) => r.trim()).length > 0 && (
             <div style={styles.refs}>
-              {commit.refs.filter(r => r.trim()).map((ref, idx) => (
-                <span key={`${ref}-${idx}`} style={styles.ref}>
-                  {ref}
-                </span>
-              ))}
+              {commit.refs
+                .filter((r) => r.trim())
+                .map((ref, idx) => (
+                  <span key={`${ref}-${idx}`} style={styles.ref}>
+                    {ref}
+                  </span>
+                ))}
             </div>
           )}
         </div>

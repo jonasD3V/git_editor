@@ -16,7 +16,10 @@ export function escapeShellArg(arg: string): string {
  * Builds git log command with options
  */
 export function buildLogCommand(options: LogOptions = {}): string[] {
-  const args = ['log', '--pretty=format:%H%n%h%n%an%n%ae%n%at%n%cn%n%ce%n%ct%n%P%n%D%n%B%x00'];
+  const args = [
+    'log',
+    '--pretty=format:%H%n%h%n%an%n%ae%n%at%n%cn%n%ce%n%ct%n%P%n%D%n%B%x00',
+  ];
 
   if (options.maxCount !== undefined) {
     args.push(`--max-count=${options.maxCount}`);
@@ -91,7 +94,11 @@ export function buildStatusCommand(): string[] {
  * Builds git branch command
  */
 export function buildBranchListCommand(includeRemote = false): string[] {
-  const args = ['branch', '--list', '--format=%(refname)%09%(HEAD)%09%(objectname)%09%(upstream)'];
+  const args = [
+    'branch',
+    '--list',
+    '--format=%(refname)%09%(HEAD)%09%(objectname)%09%(upstream)',
+  ];
 
   if (includeRemote) {
     args.push('--all');
@@ -111,5 +118,9 @@ export function buildRemoteListCommand(): string[] {
  * Builds git tag command
  */
 export function buildTagListCommand(): string[] {
-  return ['tag', '--list', '--format=%(refname:short)%09%(objectname)%09%(contents:subject)'];
+  return [
+    'tag',
+    '--list',
+    '--format=%(refname:short)%09%(objectname)%09%(contents:subject)',
+  ];
 }

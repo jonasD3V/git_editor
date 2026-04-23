@@ -3,8 +3,9 @@
  * Displays and manages repository remotes
  */
 
-import React, { useState } from 'react';
 import type { Remote } from '@git-gui/core/git/types';
+import React, { useState } from 'react';
+
 import { colors, typography } from '../theme';
 
 interface RemoteListProps {
@@ -14,7 +15,12 @@ interface RemoteListProps {
   onUpdateUrl?: (name: string, url: string) => void;
 }
 
-export function RemoteList({ remotes, onAddRemote, onRemoveRemote, onUpdateUrl }: RemoteListProps) {
+export function RemoteList({
+  remotes,
+  onAddRemote,
+  onRemoveRemote,
+  onUpdateUrl,
+}: RemoteListProps) {
   const [newName, setNewName] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [editingRemote, setEditingRemote] = useState<string | null>(null);
@@ -51,13 +57,40 @@ export function RemoteList({ remotes, onAddRemote, onRemoveRemote, onUpdateUrl }
               <div style={styles.remoteActions}>
                 {editingRemote === remote.name ? (
                   <>
-                    <button style={styles.iconButton} onClick={() => handleSaveEdit(remote.name)} title="Save">💾</button>
-                    <button style={styles.iconButton} onClick={() => setEditingRemote(null)} title="Cancel">✕</button>
+                    <button
+                      style={styles.iconButton}
+                      onClick={() => handleSaveEdit(remote.name)}
+                      title="Save"
+                    >
+                      💾
+                    </button>
+                    <button
+                      style={styles.iconButton}
+                      onClick={() => setEditingRemote(null)}
+                      title="Cancel"
+                    >
+                      ✕
+                    </button>
                   </>
                 ) : (
                   <>
-                    <button style={styles.iconButton} onClick={() => handleStartEdit(remote)} title="Edit URL">✏️</button>
-                    <button style={{ ...styles.iconButton, color: colors.accent.error }} onClick={() => onRemoveRemote?.(remote.name)} title="Remove">🗑</button>
+                    <button
+                      style={styles.iconButton}
+                      onClick={() => handleStartEdit(remote)}
+                      title="Edit URL"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      style={{
+                        ...styles.iconButton,
+                        color: colors.accent.error,
+                      }}
+                      onClick={() => onRemoveRemote?.(remote.name)}
+                      title="Remove"
+                    >
+                      🗑
+                    </button>
                   </>
                 )}
               </div>
@@ -67,10 +100,14 @@ export function RemoteList({ remotes, onAddRemote, onRemoveRemote, onUpdateUrl }
                 style={styles.input}
                 value={editUrl}
                 onChange={(e) => setEditUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(remote.name)}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && handleSaveEdit(remote.name)
+                }
               />
             ) : (
-              <div style={styles.remoteUrl} title={remote.fetchUrl}>{remote.fetchUrl}</div>
+              <div style={styles.remoteUrl} title={remote.fetchUrl}>
+                {remote.fetchUrl}
+              </div>
             )}
           </div>
         ))}

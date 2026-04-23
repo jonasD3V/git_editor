@@ -37,7 +37,9 @@ This is the commit body
       expect(commits[0].shortSha).toBe('abc');
       expect(commits[0].author.name).toBe('John Doe');
       expect(commits[0].author.email).toBe('john@example.com');
-      expect(commits[0].message).toBe('Initial commit\n\nThis is the commit body');
+      expect(commits[0].message).toBe(
+        'Initial commit\n\nThis is the commit body'
+      );
       expect(commits[0].parents).toEqual(['parent1', 'parent2']);
       expect(commits[0].refs).toContain('HEAD -> main');
     });

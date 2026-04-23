@@ -11,15 +11,16 @@ type GitStatus = 'checking' | 'ok' | 'missing';
 
 const INSTALL_URLS: Record<string, string> = {
   darwin: 'https://git-scm.com/download/mac',
-  win32:  'https://git-scm.com/download/win',
-  linux:  'https://git-scm.com/download/linux',
+  win32: 'https://git-scm.com/download/win',
+  linux: 'https://git-scm.com/download/linux',
 };
 
 export function App() {
   const [gitStatus, setGitStatus] = useState<GitStatus>('checking');
   const [gitVersion, setGitVersion] = useState('');
   const [repositoryPath, setRepositoryPath] = useState<string | undefined>(
-    (typeof process !== 'undefined' ? process.env.TEST_REPO_PATH : undefined) || undefined
+    (typeof process !== 'undefined' ? process.env.TEST_REPO_PATH : undefined) ||
+      undefined
   );
   const [shouldInit, setShouldInit] = useState(false);
 
@@ -36,7 +37,9 @@ export function App() {
   }, []);
 
   const handleOpenInstallPage = () => {
-    const url = INSTALL_URLS[process.platform as string] ?? 'https://git-scm.com/downloads';
+    const url =
+      INSTALL_URLS[process.platform as string] ??
+      'https://git-scm.com/downloads';
     void ipcRenderer.invoke('open-external', url);
   };
 
@@ -86,13 +89,17 @@ export function App() {
           <button style={styles.primaryBtn} onClick={handleOpenInstallPage}>
             Download Git
           </button>
-          <button style={styles.secondaryBtn} onClick={() => void handleRetryGitCheck()}>
+          <button
+            style={styles.secondaryBtn}
+            onClick={() => void handleRetryGitCheck()}
+          >
             Retry
           </button>
         </div>
         <div style={styles.hint}>
-          On Windows, install <strong>Git for Windows</strong> — this also includes{' '}
-          <code>ssh-keygen</code> which is required for SSH key management.
+          On Windows, install <strong>Git for Windows</strong> — this also
+          includes <code>ssh-keygen</code> which is required for SSH key
+          management.
         </div>
       </div>
     );
@@ -110,15 +117,23 @@ export function App() {
 }
 
 function CenteredMessage({ children }: { children: React.ReactNode }) {
-  return <div style={{ ...styles.center, color: '#9d9d9d', fontSize: '14px' }}>{children}</div>;
+  return (
+    <div style={{ ...styles.center, color: '#9d9d9d', fontSize: '14px' }}>
+      {children}
+    </div>
+  );
 }
 
 function platformName() {
   switch (process.platform) {
-    case 'darwin': return 'macOS';
-    case 'win32':  return 'Windows';
-    case 'linux':  return 'Linux';
-    default:       return process.platform;
+    case 'darwin':
+      return 'macOS';
+    case 'win32':
+      return 'Windows';
+    case 'linux':
+      return 'Linux';
+    default:
+      return process.platform;
   }
 }
 

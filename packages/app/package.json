@@ -58,7 +58,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerLanguages": ["en_US", "de_DE"],
+      "installerLanguages": [
+        "en_US",
+        "de_DE"
+      ],
       "include": "assets/installer.nsh"
     },
     "linux": {

@@ -29,10 +29,14 @@ export async function getGlobalConfig(): Promise<GitUserConfig> {
   return { name, email };
 }
 
-export async function setGlobalConfig(config: Partial<GitUserConfig>): Promise<void> {
+export async function setGlobalConfig(
+  config: Partial<GitUserConfig>
+): Promise<void> {
   const ops: Promise<void>[] = [];
-  if (config.name !== undefined) ops.push(setGit(['config', '--global', 'user.name', config.name]));
-  if (config.email !== undefined) ops.push(setGit(['config', '--global', 'user.email', config.email]));
+  if (config.name !== undefined)
+    ops.push(setGit(['config', '--global', 'user.name', config.name]));
+  if (config.email !== undefined)
+    ops.push(setGit(['config', '--global', 'user.email', config.email]));
   await Promise.all(ops);
 }
 
@@ -44,17 +48,29 @@ export async function getLocalConfig(repoPath: string): Promise<GitUserConfig> {
   return { name, email };
 }
 
-export async function setLocalConfig(repoPath: string, config: Partial<GitUserConfig>): Promise<void> {
+export async function setLocalConfig(
+  repoPath: string,
+  config: Partial<GitUserConfig>
+): Promise<void> {
   const ops: Promise<void>[] = [];
-  if (config.name !== undefined) ops.push(setGit(['config', '--local', 'user.name', config.name], repoPath));
-  if (config.email !== undefined) ops.push(setGit(['config', '--local', 'user.email', config.email], repoPath));
+  if (config.name !== undefined)
+    ops.push(setGit(['config', '--local', 'user.name', config.name], repoPath));
+  if (config.email !== undefined)
+    ops.push(
+      setGit(['config', '--local', 'user.email', config.email], repoPath)
+    );
   await Promise.all(ops);
 }
 
-export async function unsetLocalConfig(repoPath: string, key: 'name' | 'email'): Promise<void> {
+export async function unsetLocalConfig(
+  repoPath: string,
+  key: 'name' | 'email'
+): Promise<void> {
   const gitKey = key === 'name' ? 'user.name' : 'user.email';
   try {
-    await execFileAsync('git', ['config', '--local', '--unset', gitKey], { cwd: repoPath });
+    await execFileAsync('git', ['config', '--local', '--unset', gitKey], {
+      cwd: repoPath,
+    });
   } catch {
     // already unset — ignore
   }

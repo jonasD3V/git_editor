@@ -3,8 +3,9 @@
  * Displays changed files and allows staging/unstaging/discarding
  */
 
-import React from 'react';
 import { FileStatus, FileStatusType } from '@git-gui/core/git/types';
+import React from 'react';
+
 import { colors, typography } from '../theme';
 
 interface FileListProps {
@@ -18,15 +19,30 @@ interface FileListProps {
   onFileClick?: (path: string, staged: boolean) => void;
 }
 
-export function FileList({ files, selectedFile, onStage, onUnstage, onDiscard, onStageAll, onUnstageAll, onFileClick }: FileListProps) {
+export function FileList({
+  files,
+  selectedFile,
+  onStage,
+  onUnstage,
+  onDiscard,
+  onStageAll,
+  onUnstageAll,
+  onFileClick,
+}: FileListProps) {
   const stagedFiles = files.filter(
-    (f) => f.indexStatus !== FileStatusType.Unmodified && f.indexStatus !== FileStatusType.Untracked
+    (f) =>
+      f.indexStatus !== FileStatusType.Unmodified &&
+      f.indexStatus !== FileStatusType.Untracked
   );
   const unstagedFiles = files.filter(
-    (f) => f.workingTreeStatus !== FileStatusType.Unmodified && f.workingTreeStatus !== FileStatusType.Untracked
+    (f) =>
+      f.workingTreeStatus !== FileStatusType.Unmodified &&
+      f.workingTreeStatus !== FileStatusType.Untracked
   );
   const untrackedFiles = files.filter(
-    (f) => f.indexStatus === FileStatusType.Untracked || f.workingTreeStatus === FileStatusType.Untracked
+    (f) =>
+      f.indexStatus === FileStatusType.Untracked ||
+      f.workingTreeStatus === FileStatusType.Untracked
   );
 
   return (
@@ -36,7 +52,11 @@ export function FileList({ files, selectedFile, onStage, onUnstage, onDiscard, o
           <div style={styles.sectionHeader}>
             <span>Staged Changes</span>
             {onUnstageAll && (
-              <button style={styles.headerButton} onClick={onUnstageAll} title="Unstage all">
+              <button
+                style={styles.headerButton}
+                onClick={onUnstageAll}
+                title="Unstage all"
+              >
                 Unstage All
               </button>
             )}
@@ -60,7 +80,11 @@ export function FileList({ files, selectedFile, onStage, onUnstage, onDiscard, o
           <div style={styles.sectionHeader}>
             <span>Unstaged Changes</span>
             {onStageAll && (
-              <button style={styles.headerButton} onClick={onStageAll} title="Stage all (git add .)">
+              <button
+                style={styles.headerButton}
+                onClick={onStageAll}
+                title="Stage all (git add .)"
+              >
                 Stage All
               </button>
             )}
@@ -111,7 +135,15 @@ interface FileItemProps {
   onClick?: () => void;
 }
 
-function FileItem({ file, isStaged, isSelected, onAction, actionLabel, onDiscard, onClick }: FileItemProps) {
+function FileItem({
+  file,
+  isStaged,
+  isSelected,
+  onAction,
+  actionLabel,
+  onDiscard,
+  onClick,
+}: FileItemProps) {
   const status = isStaged ? file.indexStatus : file.workingTreeStatus;
   const statusColor = getStatusColor(status);
 
@@ -129,7 +161,10 @@ function FileItem({ file, isStaged, isSelected, onAction, actionLabel, onDiscard
 
   return (
     <div
-      style={{ ...styles.fileItem, ...(isSelected ? styles.fileItemSelected : {}) }}
+      style={{
+        ...styles.fileItem,
+        ...(isSelected ? styles.fileItemSelected : {}),
+      }}
       onClick={onClick}
     >
       <span style={{ ...styles.statusIndicator, color: statusColor }}>
@@ -140,7 +175,15 @@ function FileItem({ file, isStaged, isSelected, onAction, actionLabel, onDiscard
       </span>
       <div style={styles.fileActions}>
         {!isStaged && onDiscard && (
-          <button style={{ ...styles.actionButton, marginRight: '4px', color: colors.accent.error }} onClick={handleDiscard} title="Discard changes">
+          <button
+            style={{
+              ...styles.actionButton,
+              marginRight: '4px',
+              color: colors.accent.error,
+            }}
+            onClick={handleDiscard}
+            title="Discard changes"
+          >
             ⎌
           </button>
         )}

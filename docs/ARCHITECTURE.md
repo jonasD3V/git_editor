@@ -5,6 +5,7 @@ This document describes the system architecture, design decisions, and technical
 ## Overview
 
 Git GUI is a cross-platform, native Git GUI application built with React Native Desktop. It emphasizes:
+
 - **Developer-friendly UX**: Close to Git commands, logical workflows
 - **Visual clarity**: Superior commit graph visualization
 - **Maintainability**: Clean architecture, well-structured for future development
@@ -22,16 +23,17 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
 
 ### Why Electron?
 
-| Requirement | Solution |
-|-------------|----------|
-| Cross-platform | Single codebase for macOS, Windows, Linux |
-| Code reuse | 100% shared React codebase |
-| Easy installation | Simple installers for all platforms |
-| Easy to maintain | One build process, proven technology |
-| Developer-friendly | Excellent tooling, large ecosystem |
-| Fast development | No native compilation complexity |
+| Requirement        | Solution                                  |
+| ------------------ | ----------------------------------------- |
+| Cross-platform     | Single codebase for macOS, Windows, Linux |
+| Code reuse         | 100% shared React codebase                |
+| Easy installation  | Simple installers for all platforms       |
+| Easy to maintain   | One build process, proven technology      |
+| Developer-friendly | Excellent tooling, large ecosystem        |
+| Fast development   | No native compilation complexity          |
 
 **Why this works for a Git GUI:**
+
 - ✅ Proven: GitHub Desktop, GitKraken, VS Code use Electron
 - ✅ Performance: Git operations are CLI-based (fast)
 - ✅ UI performance: Modern React optimizations
@@ -39,6 +41,7 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
 - ✅ Updates: Electron auto-update built-in
 
 **Alternatives considered:**
+
 - **React Native Desktop**: Rejected (complex setup, less mature)
 - **Tauri**: Considered but Electron has better Git GUI precedent
 - **Separate native apps**: Rejected (low code reuse, maintenance burden)
@@ -86,15 +89,18 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
 ### Module Responsibilities
 
 #### Core Layer (`packages/core`)
+
 **Platform-agnostic business logic**
 
 - **Git Module** (`src/git/`)
+
   - Repository abstraction
   - Commit, branch, merge operations
   - Graph data processing
   - Diff and status parsing
 
 - **SSH Module** (`src/ssh/`)
+
   - Key generation
   - Keychain abstraction
   - Remote authentication
@@ -109,9 +115,11 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
 **Import Rule**: Cannot import from UI layer (must remain UI-agnostic)
 
 #### UI Layer (`packages/ui`)
+
 **Shared React components and screens**
 
 - **Components** (`src/components/`)
+
   - CommitGraph: Visual graph rendering (Skia)
   - Terminal: Terminal UI component
   - Repository: Git operation UI (commit, branch panels)
@@ -119,11 +127,13 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
   - common: Design system components
 
 - **Screens** (`src/screens/`)
+
   - RepositoryScreen: Main workspace
   - SettingsScreen: App configuration
   - WelcomeScreen: Onboarding
 
 - **Hooks** (`src/hooks/`)
+
   - useRepository: Git state management
   - useCommitGraph: Graph data and rendering
   - useTerminal: Terminal integration
@@ -138,6 +148,7 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
 **Import Rule**: Can import from Core layer, cannot be imported by Core
 
 #### Platform Apps (`packages/app-*`)
+
 **Platform-specific application shells**
 
 - app-macos: macOS native code + React Native macOS
@@ -145,6 +156,7 @@ Git GUI is a cross-platform, native Git GUI application built with React Native 
 - app-linux: Linux native code + React Native GTK/Qt
 
 Each app:
+
 - Imports UI and Core layers
 - Provides platform-specific entry point
 - Handles native integrations (menu bar, notifications, etc.)
@@ -152,9 +164,11 @@ Each app:
 **Import Rule**: Cannot import other platform apps
 
 #### Native Modules (`packages/native-modules`)
+
 **Platform-specific native bridges**
 
 - **Keychain Module**: Secure key storage
+
   - macOS: Keychain Services API
   - Windows: Credential Manager API
   - Linux: libsecret
@@ -205,11 +219,13 @@ Canvas Output
 **Decision**: Use both nodegit (libgit2) and Git CLI
 
 **Rationale**:
+
 - nodegit (libgit2): Fast, programmatic API, no Git installation required
 - Git CLI: Full feature support, well-tested, handles edge cases
 - Hybrid: Use nodegit for common operations, fallback to CLI for complex ones
 
 **Consequences**:
+
 - ✅ Best of both worlds
 - ✅ Reliability for edge cases
 - ❌ Slightly more complex
@@ -222,6 +238,7 @@ Canvas Output
 **Decision**: Use React Native for macOS/Windows/Linux
 
 **Rationale**:
+
 - React Native macOS/Windows are official Microsoft projects
 - True native compilation (not webview)
 - 80-90% code reuse across platforms
@@ -229,6 +246,7 @@ Canvas Output
 - Native performance
 
 **Consequences**:
+
 - ✅ High code reuse
 - ✅ Native performance
 - ✅ Single UI codebase
@@ -242,12 +260,14 @@ Canvas Output
 **Decision**: Use Turborepo for monorepo management
 
 **Rationale**:
+
 - Intelligent build caching
 - Parallel task execution
 - Clear dependency graph
 - Better than Lerna for build performance
 
 **Consequences**:
+
 - ✅ Fast incremental builds
 - ✅ Clear package boundaries
 - ✅ Simple configuration
@@ -260,6 +280,7 @@ Canvas Output
 **Decision**: Use Zustand instead of Redux or Context
 
 **Rationale**:
+
 - Minimal boilerplate
 - TypeScript-first
 - No provider hell
@@ -267,6 +288,7 @@ Canvas Output
 - Good DevTools support
 
 **Consequences**:
+
 - ✅ Easy to learn
 - ✅ Less code
 - ✅ Good TypeScript support
@@ -280,6 +302,7 @@ Canvas Output
 **Decision**: Use React Native Skia for graph rendering
 
 **Rationale**:
+
 - GPU-accelerated
 - 60fps performance
 - Full control over rendering
@@ -287,6 +310,7 @@ Canvas Output
 - Better than SVG for large graphs
 
 **Consequences**:
+
 - ✅ Excellent performance
 - ✅ Smooth animations
 - ✅ Native feel
@@ -296,6 +320,7 @@ Canvas Output
 ## Performance Considerations
 
 ### Commit Graph
+
 - **Target**: 60fps for 10k+ commits
 - **Strategies**:
   - Virtualization (only render visible commits)
@@ -305,6 +330,7 @@ Canvas Output
   - Web Workers for layout calculation
 
 ### Repository Operations
+
 - **Target**: <2s load time for large repos
 - **Strategies**:
   - Async/non-blocking operations
@@ -313,6 +339,7 @@ Canvas Output
   - Optimistic UI updates
 
 ### Memory Management
+
 - **Target**: <200MB for typical use
 - **Strategies**:
   - Lazy loading
@@ -323,21 +350,25 @@ Canvas Output
 ## Testing Strategy
 
 ### Unit Tests (Jest)
+
 - **Core module**: >90% coverage
 - **UI components**: >80% coverage
 - Focus on business logic and edge cases
 
 ### Component Tests (React Native Testing Library)
+
 - User interaction flows
 - Component rendering
 - State updates
 
 ### E2E Tests (Playwright/Detox)
+
 - Platform-specific per app
 - Critical user journeys
 - Git workflow scenarios
 
 ### Performance Tests
+
 - Graph rendering benchmarks
 - Large repository stress tests
 - Memory leak detection
@@ -345,18 +376,21 @@ Canvas Output
 ## Security Considerations
 
 ### SSH Key Storage
+
 - **macOS**: Keychain Services (encrypted)
 - **Windows**: Credential Manager (encrypted)
 - **Linux**: libsecret (encrypted)
 - Never store unencrypted private keys in memory longer than necessary
 
 ### Git Operations
+
 - Validate all user input
 - Sanitize Git command arguments
 - Use libgit2 where possible (safer than CLI)
 - Prevent command injection
 
 ### Terminal
+
 - Sandboxed PTY
 - No automatic command execution
 - Clear distinction between user input and output
@@ -364,17 +398,20 @@ Canvas Output
 ## Deployment
 
 ### macOS
+
 - Code-signed `.dmg`
 - Notarized for Gatekeeper
 - Homebrew Cask distribution
 - Auto-update via Sparkle
 
 ### Windows
+
 - Code-signed `.exe`/`.msi`
 - Winget and Chocolatey packages
 - Auto-update via Squirrel.Windows
 
 ### Linux
+
 - AppImage (universal)
 - Snap package
 - Flatpak package
@@ -383,6 +420,7 @@ Canvas Output
 ## Future Extensibility
 
 The architecture supports:
+
 - **Plugin system**: Core API exposed for extensions
 - **Custom themes**: Design token system
 - **AI features**: Commit message generation, code review

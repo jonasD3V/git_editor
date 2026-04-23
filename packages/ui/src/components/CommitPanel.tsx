@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+
 import { colors, typography } from '../theme';
 
 interface CommitPanelProps {
@@ -56,7 +57,9 @@ export function CommitPanel({ onCommit, onStash, disabled }: CommitPanelProps) {
           style={{
             ...styles.button,
             flex: 2,
-            ...(disabled || !message.trim() || isLoading ? styles.buttonDisabled : {}),
+            ...(disabled || !message.trim() || isLoading
+              ? styles.buttonDisabled
+              : {}),
           }}
           onClick={handleCommit}
           disabled={disabled || !message.trim() || isLoading}

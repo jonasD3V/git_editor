@@ -1,8 +1,8 @@
 import { execFile } from 'child_process';
-import { promisify } from 'util';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
 
@@ -46,7 +46,10 @@ export class SSHManager {
 
           let fingerprint = '';
           try {
-            const { stdout } = await execFileAsync('ssh-keygen', ['-lf', pubPath]);
+            const { stdout } = await execFileAsync('ssh-keygen', [
+              '-lf',
+              pubPath,
+            ]);
             fingerprint = stdout.trim().split(' ')[1] ?? '';
           } catch {
             fingerprint = 'unavailable';
@@ -60,7 +63,15 @@ export class SSHManager {
             // no private key
           }
 
-          keys.push({ name, publicKeyPath: pubPath, privateKeyPath: privPath, type, fingerprint, publicKey: pubContent.trim(), hasPrivateKey });
+          keys.push({
+            name,
+            publicKeyPath: pubPath,
+            privateKeyPath: privPath,
+            type,
+            fingerprint,
+            publicKey: pubContent.trim(),
+            hasPrivateKey,
+          });
         } catch {
           // skip unreadable keys
         }
@@ -71,7 +82,11 @@ export class SSHManager {
     }
   }
 
-  async generateKey(name: string, type: 'ed25519' | 'rsa' = 'ed25519', comment = ''): Promise<SSHKeyInfo> {
+  async generateKey(
+    name: string,
+    type: 'ed25519' | 'rsa' = 'ed25519',
+    comment = ''
+  ): Promise<SSHKeyInfo> {
     await fs.mkdir(this.sshDir, { recursive: true });
     const keyPath = path.join(this.sshDir, name);
 
@@ -96,7 +111,15 @@ export class SSHManager {
   async deleteKey(name: string): Promise<void> {
     const pubPath = path.join(this.sshDir, `${name}.pub`);
     const privPath = path.join(this.sshDir, name);
-    try { await fs.unlink(pubPath); } catch { /* ignore */ }
-    try { await fs.unlink(privPath); } catch { /* ignore */ }
+    try {
+      await fs.unlink(pubPath);
+    } catch {
+      /* ignore */
+    }
+    try {
+      await fs.unlink(privPath);
+    } catch {
+      /* ignore */
+    }
   }
 }

@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import {
   getGlobalConfig,
   setGlobalConfig,
@@ -7,6 +6,8 @@ import {
   unsetLocalConfig,
 } from '@git-gui/core/git';
 import type { GitUserConfig } from '@git-gui/core/git';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import { colors, typography } from '../theme';
 
 interface GitConfigPanelProps {
@@ -40,7 +41,9 @@ export function GitConfigPanel({ repoPath }: GitConfigPanelProps) {
     }
   }, [repoPath]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const handleSaveGlobal = async () => {
     setError(null);
@@ -120,10 +123,15 @@ export function GitConfigPanel({ repoPath }: GitConfigPanelProps) {
             style={styles.input}
             placeholder="you@example.com"
             value={global_.email}
-            onChange={(e) => setGlobal((p) => ({ ...p, email: e.target.value }))}
+            onChange={(e) =>
+              setGlobal((p) => ({ ...p, email: e.target.value }))
+            }
           />
           <button
-            style={{ ...styles.saveBtn, ...(savedGlobal ? styles.saveBtnSuccess : {}) }}
+            style={{
+              ...styles.saveBtn,
+              ...(savedGlobal ? styles.saveBtnSuccess : {}),
+            }}
             onClick={() => void handleSaveGlobal()}
           >
             {savedGlobal ? '✓ Saved' : 'Save Global'}
@@ -143,10 +151,16 @@ export function GitConfigPanel({ repoPath }: GitConfigPanelProps) {
                 style={styles.input}
                 placeholder={global_.name || 'Override name for this repo…'}
                 value={local.name}
-                onChange={(e) => setLocal((p) => ({ ...p, name: e.target.value }))}
+                onChange={(e) =>
+                  setLocal((p) => ({ ...p, name: e.target.value }))
+                }
               />
               {local.name && (
-                <button style={styles.unsetBtn} onClick={() => void handleUnsetLocal('name')} title="Remove local override">
+                <button
+                  style={styles.unsetBtn}
+                  onClick={() => void handleUnsetLocal('name')}
+                  title="Remove local override"
+                >
                   ✕
                 </button>
               )}
@@ -157,16 +171,25 @@ export function GitConfigPanel({ repoPath }: GitConfigPanelProps) {
                 style={styles.input}
                 placeholder={global_.email || 'Override email for this repo…'}
                 value={local.email}
-                onChange={(e) => setLocal((p) => ({ ...p, email: e.target.value }))}
+                onChange={(e) =>
+                  setLocal((p) => ({ ...p, email: e.target.value }))
+                }
               />
               {local.email && (
-                <button style={styles.unsetBtn} onClick={() => void handleUnsetLocal('email')} title="Remove local override">
+                <button
+                  style={styles.unsetBtn}
+                  onClick={() => void handleUnsetLocal('email')}
+                  title="Remove local override"
+                >
                   ✕
                 </button>
               )}
             </div>
             <button
-              style={{ ...styles.saveBtn, ...(savedLocal ? styles.saveBtnSuccess : {}) }}
+              style={{
+                ...styles.saveBtn,
+                ...(savedLocal ? styles.saveBtnSuccess : {}),
+              }}
               onClick={() => void handleSaveLocal()}
             >
               {savedLocal ? '✓ Saved' : 'Save Local'}

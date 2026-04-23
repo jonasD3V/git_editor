@@ -4,22 +4,10 @@
  */
 
 import { execFile } from 'child_process';
-import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { promisify } from 'util';
 
-import {
-  Commit,
-  Branch,
-  Remote,
-  RepositoryStatus,
-  Stash,
-  Tag,
-  LogOptions,
-  DiffOptions,
-  CommitOptions,
-  FileStatusType,
-} from './types';
 import {
   buildLogCommand,
   buildBranchListCommand,
@@ -36,6 +24,19 @@ import {
   parseCurrentBranch,
   parseUpstreamInfo,
 } from '../utils/parsers';
+
+import {
+  Commit,
+  Branch,
+  Remote,
+  RepositoryStatus,
+  Stash,
+  Tag,
+  LogOptions,
+  DiffOptions,
+  CommitOptions,
+  FileStatusType,
+} from './types';
 
 const execFileAsync = promisify(execFile);
 
@@ -86,7 +87,9 @@ export class Repository {
       return new Repository(repoPath);
     } catch (error) {
       if (error instanceof Error && 'stderr' in error) {
-        throw new Error(`Git init failed: ${(error as { stderr: string }).stderr}`);
+        throw new Error(
+          `Git init failed: ${(error as { stderr: string }).stderr}`
+        );
       }
       throw error;
     }
@@ -113,7 +116,9 @@ export class Repository {
       return stdout;
     } catch (error) {
       if (error instanceof Error && 'stderr' in error) {
-        throw new Error(`Git command failed: ${(error as { stderr: string }).stderr}`);
+        throw new Error(
+          `Git command failed: ${(error as { stderr: string }).stderr}`
+        );
       }
       throw error;
     }
@@ -124,8 +129,17 @@ export class Repository {
    * @returns Repository status including current branch, files, and tracking info
    */
   async getStatus(): Promise<RepositoryStatus> {
-    const statusOutput = await this.execGit(['status', '--porcelain=v1', '--branch', '-z', '--untracked-files=all']);
-    console.log('Raw status output (hex):', Buffer.from(statusOutput).toString('hex').substring(0, 100));
+    const statusOutput = await this.execGit([
+      'status',
+      '--porcelain=v1',
+      '--branch',
+      '-z',
+      '--untracked-files=all',
+    ]);
+    console.log(
+      'Raw status output (hex):',
+      Buffer.from(statusOutput).toString('hex').substring(0, 100)
+    );
     const files = parseStatusOutput(statusOutput);
     const currentBranch = parseCurrentBranch(statusOutput);
     const upstreamInfo = parseUpstreamInfo(statusOutput);
@@ -152,12 +166,13 @@ export class Repository {
       return parseLogOutput(output);
     } catch (error) {
       // Handle fresh repositories with no commits
-      if (error instanceof Error && (
-        error.message.includes('does not have any commits yet') ||
-        error.message.includes("bad default revision 'HEAD'") ||
-        error.message.includes('does not have any commits') ||
-        error.message.includes('fatal: your current branch')
-      )) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('does not have any commits yet') ||
+          error.message.includes("bad default revision 'HEAD'") ||
+          error.message.includes('does not have any commits') ||
+          error.message.includes('fatal: your current branch'))
+      ) {
         return [];
       }
       throw error;
@@ -284,7 +299,11 @@ export class Repository {
    * @param commit - Commit SHA (defaults to HEAD)
    * @param message - Tag message (creates annotated tag)
    */
-  async createTag(name: string, commit = 'HEAD', message?: string): Promise<void> {
+  async createTag(
+    name: string,
+    commit = 'HEAD',
+    message?: string
+  ): Promise<void> {
     const args = ['tag'];
     if (message) {
       args.push('-a', name, '-m', message, commit);
@@ -334,7 +353,8 @@ export class Repository {
     } else {
       // Fresh repo: HEAD doesn't exist yet, use git rm --cached
       if (validPaths.length === 0) {
-        if (paths.length === 0) await this.execGit(['rm', '--cached', '-r', '.']);
+        if (paths.length === 0)
+          await this.execGit(['rm', '--cached', '-r', '.']);
       } else {
         await this.execGit(['rm', '--cached', '--', ...validPaths]);
       }
@@ -368,7 +388,7 @@ export class Repository {
       } catch (e) {
         // If it's not tracked, checkout will fail, so we try clean
       }
-      
+
       try {
         await this.execGit(['clean', '-f', '--', ...paths]);
       } catch (e) {
@@ -382,7 +402,11 @@ export class Repository {
    * @returns Array of stashes
    */
   async getStashes(): Promise<Stash[]> {
-    const output = await this.execGit(['stash', 'list', '--pretty=format:%gd%n%gs%n%ar%x00']);
+    const output = await this.execGit([
+      'stash',
+      'list',
+      '--pretty=format:%gd%n%gs%n%ar%x00',
+    ]);
     if (!output.trim()) return [];
 
     const stashes: Stash[] = [];
@@ -399,7 +423,7 @@ export class Repository {
       stashes.push({
         index,
         message,
-        branch: '', 
+        branch: '',
         date: new Date(),
       });
     }
@@ -505,7 +529,12 @@ export class Repository {
     } else {
       const resolvedRemote = remote ?? 'origin';
       const resolvedBranch = status.currentBranch ?? 'main';
-      await this.execGit(['pull', '--no-rebase', resolvedRemote, resolvedBranch]);
+      await this.execGit([
+        'pull',
+        '--no-rebase',
+        resolvedRemote,
+        resolvedBranch,
+      ]);
     }
   }
 
@@ -522,6 +551,32 @@ export class Repository {
     }
   }
 
+  async pullAllowUnrelatedHistories(remote?: string): Promise<void> {
+    const status = await this.getStatus();
+    const resolvedRemote = remote ?? 'origin';
+    const resolvedBranch = status.currentBranch ?? 'main';
+    await this.execGit([
+      'pull',
+      '--allow-unrelated-histories',
+      '--no-rebase',
+      resolvedRemote,
+      resolvedBranch,
+    ]);
+  }
+
+  async pullRebaseAllowUnrelatedHistories(remote?: string): Promise<void> {
+    const status = await this.getStatus();
+    const resolvedRemote = remote ?? 'origin';
+    const resolvedBranch = status.currentBranch ?? 'main';
+    await this.execGit([
+      'pull',
+      '--allow-unrelated-histories',
+      '--rebase',
+      resolvedRemote,
+      resolvedBranch,
+    ]);
+  }
+
   async resetToRemote(remote = 'origin'): Promise<void> {
     const status = await this.getStatus();
     const branch = status.currentBranch ?? 'main';
@@ -533,7 +588,12 @@ export class Repository {
     const status = await this.getStatus();
     const resolvedRemote = remote ?? 'origin';
     const resolvedBranch = branch ?? status.currentBranch ?? 'main';
-    await this.execGit(['push', '--force-with-lease', resolvedRemote, resolvedBranch]);
+    await this.execGit([
+      'push',
+      '--force-with-lease',
+      resolvedRemote,
+      resolvedBranch,
+    ]);
   }
 
   /**
@@ -542,7 +602,11 @@ export class Repository {
    * @param branch - Branch name
    * @param setUpstream - Set upstream tracking
    */
-  async push(remote?: string, branch?: string, setUpstream = false): Promise<void> {
+  async push(
+    remote?: string,
+    branch?: string,
+    setUpstream = false
+  ): Promise<void> {
     const status = await this.getStatus();
     const hasUpstream = !!status.upstream;
 

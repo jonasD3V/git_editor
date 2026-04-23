@@ -39,10 +39,18 @@ export function parseLogOutput(output: string): Commit[] {
     const refs = lines[9];
     const messageLines = lines.slice(10);
 
-    if (sha === undefined || shortSha === undefined || authorName === undefined ||
-        authorEmail === undefined || authorDate === undefined || committerName === undefined ||
-        committerEmail === undefined || committerDate === undefined ||
-        parents === undefined || refs === undefined) {
+    if (
+      sha === undefined ||
+      shortSha === undefined ||
+      authorName === undefined ||
+      authorEmail === undefined ||
+      authorDate === undefined ||
+      committerName === undefined ||
+      committerEmail === undefined ||
+      committerDate === undefined ||
+      parents === undefined ||
+      refs === undefined
+    ) {
       continue;
     }
 
@@ -202,18 +210,20 @@ export function parseStatusOutput(output: string): FileStatus[] {
     const indexStatus = entry[0] as FileStatusType;
     const workingTreeStatus = entry[1] as FileStatusType;
     const path = entry.substring(3);
-    
+
     console.log(`Parsed file: [${indexStatus}${workingTreeStatus}] ${path}`);
 
     // Handle renamed/copied files in -z format
     // They are followed by another NUL-terminated string for the original path
-    let actualPath = path;
+    const actualPath = path;
     let originalPath: string | undefined;
 
-    if (indexStatus === FileStatusType.Renamed || 
-        indexStatus === FileStatusType.Copied ||
-        workingTreeStatus === FileStatusType.Renamed ||
-        workingTreeStatus === FileStatusType.Copied) {
+    if (
+      indexStatus === FileStatusType.Renamed ||
+      indexStatus === FileStatusType.Copied ||
+      workingTreeStatus === FileStatusType.Renamed ||
+      workingTreeStatus === FileStatusType.Copied
+    ) {
       i++;
       if (i < entries.length) {
         originalPath = entries[i];
@@ -293,7 +303,9 @@ export function parseUpstreamInfo(output: string): {
   ahead: number;
   behind: number;
 } {
-  const match = output.match(/^## [^\s\0.]+\.\.\.([^\s\0]+)(?: \[(?:ahead (\d+))?(?:, )?(?:behind (\d+))?\])?/m);
+  const match = output.match(
+    /^## [^\s\0.]+\.\.\.([^\s\0]+)(?: \[(?:ahead (\d+))?(?:, )?(?:behind (\d+))?\])?/m
+  );
 
   if (!match) {
     return { upstream: null, ahead: 0, behind: 0 };

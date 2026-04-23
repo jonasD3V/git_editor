@@ -3,8 +3,9 @@
  * Displays repository branches
  */
 
-import React, { useState } from 'react';
 import type { Branch } from '@git-gui/core/git/types';
+import React, { useState } from 'react';
+
 import { colors, typography } from '../theme';
 
 interface BranchListProps {
@@ -15,7 +16,12 @@ interface BranchListProps {
   onDeleteBranch?: (name: string) => void;
 }
 
-export function BranchList({ branches, onBranchClick, onCreateBranch, onDeleteBranch }: BranchListProps) {
+export function BranchList({
+  branches,
+  onBranchClick,
+  onCreateBranch,
+  onDeleteBranch,
+}: BranchListProps) {
   const [newBranchName, setNewBranchName] = useState('');
 
   const handleCreate = () => {
@@ -28,7 +34,9 @@ export function BranchList({ branches, onBranchClick, onCreateBranch, onDeleteBr
 
   const handleDelete = (e: React.MouseEvent, branchName: string) => {
     e.stopPropagation();
-    if (window.confirm(`Are you sure you want to delete branch "${branchName}"?`)) {
+    if (
+      window.confirm(`Are you sure you want to delete branch "${branchName}"?`)
+    ) {
       onDeleteBranch?.(branchName);
     }
   };
@@ -53,11 +61,13 @@ export function BranchList({ branches, onBranchClick, onCreateBranch, onDeleteBr
         </div>
       )}
 
-      {localBranches.length === 0 && remoteBranches.length === 0 && !onCreateBranch && (
-        <div style={styles.empty}>
-          <p style={styles.emptyText}>No branches</p>
-        </div>
-      )}
+      {localBranches.length === 0 &&
+        remoteBranches.length === 0 &&
+        !onCreateBranch && (
+          <div style={styles.empty}>
+            <p style={styles.emptyText}>No branches</p>
+          </div>
+        )}
 
       {localBranches.length > 0 && (
         <div style={styles.section}>
@@ -71,10 +81,14 @@ export function BranchList({ branches, onBranchClick, onCreateBranch, onDeleteBr
               }}
               onClick={() => onBranchClick?.(branch)}
             >
-              {branch.isCurrent && <span style={styles.currentIndicator}>●</span>}
+              {branch.isCurrent && (
+                <span style={styles.currentIndicator}>●</span>
+              )}
               <span style={styles.branchName}>{branch.name}</span>
               {branch.upstream && (
-                <span style={styles.upstream}>→ {branch.upstream.replace('refs/remotes/', '')}</span>
+                <span style={styles.upstream}>
+                  → {branch.upstream.replace('refs/remotes/', '')}
+                </span>
               )}
               {!branch.isCurrent && onDeleteBranch && (
                 <button

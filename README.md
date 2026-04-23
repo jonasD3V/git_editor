@@ -45,15 +45,15 @@ Some things that came out of it:
 
 ## Tech stack
 
-| Layer | Tech |
-|---|---|
-| Shell | Electron 30 |
-| UI | React 18 + Zustand |
-| Language | TypeScript 5.4 (strict) |
-| Bundler | Vite + vite-plugin-electron-renderer |
-| Monorepo | Turborepo |
-| Git ops | Node.js `child_process` → `git` CLI |
-| SSH | Node.js `fs` + `ssh-keygen` CLI |
+| Layer    | Tech                                 |
+| -------- | ------------------------------------ |
+| Shell    | Electron 30                          |
+| UI       | React 18 + Zustand                   |
+| Language | TypeScript 5.4 (strict)              |
+| Bundler  | Vite + vite-plugin-electron-renderer |
+| Monorepo | Turborepo                            |
+| Git ops  | Node.js `child_process` → `git` CLI  |
+| SSH      | Node.js `fs` + `ssh-keygen` CLI      |
 
 ---
 

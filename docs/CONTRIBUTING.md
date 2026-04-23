@@ -17,17 +17,20 @@ Thank you for your interest in contributing to Git GUI! This document provides g
 ### Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/git-gui.git
 cd git-gui
 ```
 
 2. Install dependencies:
+
 ```bash
 npm run setup
 ```
 
 This will:
+
 - Install all dependencies
 - Build all packages
 - Set up Git hooks
@@ -112,6 +115,7 @@ git-gui/
 We use Prettier for formatting and ESLint for linting. The pre-commit hook will automatically check your code.
 
 Key style points:
+
 - 2 spaces for indentation
 - Single quotes for strings
 - Semicolons required
@@ -121,6 +125,7 @@ Key style points:
 ### Comments
 
 - Use JSDoc for public APIs:
+
 ```typescript
 /**
  * Retrieves commit history for the repository
@@ -140,6 +145,7 @@ export async function getCommitHistory(options: LogOptions): Promise<Commit[]> {
 - Write tests for all new features
 - Maintain >80% coverage overall, >90% for core package
 - Use descriptive test names:
+
 ```typescript
 describe('Repository', () => {
   describe('getStatus', () => {
@@ -177,6 +183,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -186,6 +193,7 @@ Types:
 - `chore`: Maintenance tasks
 
 Examples:
+
 ```
 feat(core): add support for interactive rebase
 fix(ui): resolve commit graph rendering issue on large repos
@@ -202,6 +210,7 @@ docs(contributing): update setup instructions
 6. Request review from maintainers
 
 PR checklist:
+
 - [ ] Tests added/updated
 - [ ] Documentation updated
 - [ ] Code follows style guide
@@ -234,6 +243,7 @@ Follow these import rules (enforced by ESLint):
 ## Documentation
 
 When adding new features:
+
 1. Update relevant README files
 2. Add JSDoc comments to public APIs
 3. Update ARCHITECTURE.md if design changes

@@ -11,8 +11,5 @@
   },
   "include": ["src/**/*", "electron/**/*"],
   "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../core" },
-    { "path": "../ui" }
-  ]
+  "references": [{ "path": "../core" }, { "path": "../ui" }]
 }

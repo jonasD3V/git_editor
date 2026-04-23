@@ -1,16 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useRepository } from '../hooks/useRepository';
-import { CommitList } from '../components/CommitList';
-import { BranchList } from '../components/BranchList';
-import { FileList } from '../components/FileList';
-import { CommitPanel } from '../components/CommitPanel';
-import { RemoteList } from '../components/RemoteList';
-import { StashList } from '../components/StashList';
-import { DiffViewer } from '../components/DiffViewer';
-import { SSHKeyManager } from '../components/SSHKeyManager';
-import { GitConfigPanel } from '../components/GitConfigPanel';
-import { colors, typography } from '../theme';
 import type { Commit } from '@git-gui/core/git/types';
+import React, { useEffect, useState, useCallback } from 'react';
+
+import { BranchList } from '../components/BranchList';
+import { CommitList } from '../components/CommitList';
+import { CommitPanel } from '../components/CommitPanel';
+import { DiffViewer } from '../components/DiffViewer';
+import { FileList } from '../components/FileList';
+import { GitConfigPanel } from '../components/GitConfigPanel';
+import { RemoteList } from '../components/RemoteList';
+import { SSHKeyManager } from '../components/SSHKeyManager';
+import { StashList } from '../components/StashList';
+import { useRepository } from '../hooks/useRepository';
+import { colors, typography } from '../theme';
 
 interface RepositoryScreenProps {
   repositoryPath?: string;
@@ -20,17 +21,29 @@ interface RepositoryScreenProps {
   gitVersion?: string;
 }
 
-export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository, onInitRepository, gitVersion }: RepositoryScreenProps) {
-  const [sidePanel, setSidePanel] = useState<null | 'remotes' | 'ssh' | 'config'>(null);
+export function RepositoryScreen({
+  repositoryPath,
+  shouldInit,
+  onOpenRepository,
+  onInitRepository,
+  gitVersion,
+}: RepositoryScreenProps) {
+  const [sidePanel, setSidePanel] = useState<
+    null | 'remotes' | 'ssh' | 'config'
+  >(null);
   const [notification, setNotification] = useState<{
     message: string;
-    kind: 'error' | 'push-rejected' | 'divergent';
+    kind: 'error' | 'push-rejected' | 'divergent' | 'unrelated-histories';
   } | null>(null);
   const [diffContent, setDiffContent] = useState<string | null>(null);
   const [diffTitle, setDiffTitle] = useState<string | undefined>(undefined);
   const [isDiffLoading, setIsDiffLoading] = useState(false);
-  const [selectedCommitSha, setSelectedCommitSha] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<string | undefined>(undefined);
+  const [selectedCommitSha, setSelectedCommitSha] = useState<string | null>(
+    null
+  );
+  const [selectedFile, setSelectedFile] = useState<string | undefined>(
+    undefined
+  );
 
   const {
     repository,
@@ -69,6 +82,8 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
     dropStash,
     getFileDiff,
     getCommitDiff,
+    pullAllowUnrelatedHistories,
+    pullRebaseAllowUnrelatedHistories,
   } = useRepository();
 
   useEffect(() => {
@@ -114,37 +129,46 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
     }
   };
 
-  const handleCommitClick = useCallback(async (commit: Commit) => {
-    const sha = commit.sha || commit.shortSha;
-    if (!sha) return;
-    setSelectedCommitSha(sha);
-    setSelectedFile(undefined);
-    setIsDiffLoading(true);
-    setDiffTitle(`${commit.shortSha} – ${commit.message}`);
-    const diff = await getCommitDiff(sha);
-    setDiffContent(diff);
-    setIsDiffLoading(false);
-  }, [getCommitDiff]);
+  const handleCommitClick = useCallback(
+    async (commit: Commit) => {
+      const sha = commit.sha || commit.shortSha;
+      if (!sha) return;
+      setSelectedCommitSha(sha);
+      setSelectedFile(undefined);
+      setIsDiffLoading(true);
+      setDiffTitle(`${commit.shortSha} – ${commit.message}`);
+      const diff = await getCommitDiff(sha);
+      setDiffContent(diff);
+      setIsDiffLoading(false);
+    },
+    [getCommitDiff]
+  );
 
-  const handleCheckoutCommit = useCallback(async (commit: Commit) => {
-    const ref = commit.sha || commit.shortSha;
-    if (!ref) return;
-    try {
-      await checkoutBranch(ref);
-    } catch (err) {
-      console.error('Commit checkout failed:', err);
-    }
-  }, [checkoutBranch]);
+  const handleCheckoutCommit = useCallback(
+    async (commit: Commit) => {
+      const ref = commit.sha || commit.shortSha;
+      if (!ref) return;
+      try {
+        await checkoutBranch(ref);
+      } catch (err) {
+        console.error('Commit checkout failed:', err);
+      }
+    },
+    [checkoutBranch]
+  );
 
-  const handleFileClick = useCallback(async (filePath: string, staged: boolean) => {
-    setSelectedFile(filePath);
-    setSelectedCommitSha(null);
-    setIsDiffLoading(true);
-    setDiffTitle(`${staged ? '[staged] ' : ''}${filePath}`);
-    const diff = await getFileDiff(filePath, staged);
-    setDiffContent(diff || '(no diff available)');
-    setIsDiffLoading(false);
-  }, [getFileDiff]);
+  const handleFileClick = useCallback(
+    async (filePath: string, staged: boolean) => {
+      setSelectedFile(filePath);
+      setSelectedCommitSha(null);
+      setIsDiffLoading(true);
+      setDiffTitle(`${staged ? '[staged] ' : ''}${filePath}`);
+      const diff = await getFileDiff(filePath, staged);
+      setDiffContent(diff || '(no diff available)');
+      setIsDiffLoading(false);
+    },
+    [getFileDiff]
+  );
 
   const handleStage = async (path: string) => {
     await stageFiles([path]);
@@ -195,23 +219,44 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
       await fn();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Operation failed';
-      const isDivergent = msg.includes('divergent') || msg.includes('reconcile') || msg.includes('Need to specify how');
-      const isPushRejected = msg.includes('non-fast-forward') || (msg.includes('rejected') && !isDivergent);
+      const isUnrelatedHistories = msg.includes('unrelated histories');
+      const isDivergent =
+        !isUnrelatedHistories &&
+        (msg.includes('divergent') ||
+          msg.includes('reconcile') ||
+          msg.includes('Need to specify how'));
+      const isPushRejected =
+        msg.includes('non-fast-forward') ||
+        (msg.includes('rejected') && !isDivergent && !isUnrelatedHistories);
       setNotification({
         message: msg,
-        kind: isDivergent ? 'divergent' : isPushRejected ? 'push-rejected' : 'error',
+        kind: isUnrelatedHistories
+          ? 'unrelated-histories'
+          : isDivergent
+            ? 'divergent'
+            : isPushRejected
+              ? 'push-rejected'
+              : 'error',
       });
     }
   };
 
   const handleFetch = () => runWithNotification(() => fetch());
-  const handlePull  = () => runWithNotification(() => pull());
-  const handlePush  = () => runWithNotification(() => push());
+  const handlePull = () => runWithNotification(() => pull());
+  const handlePush = () => runWithNotification(() => push());
 
-  const handlePullThenPush    = () => runWithNotification(async () => { await pull();       await push(); });
-  const handlePullRebase      = () => runWithNotification(() => pullRebase());
-  const handleResetToRemote   = () => runWithNotification(() => resetToRemote());
-  const handlePushForce       = () => runWithNotification(() => pushForce());
+  const handlePullThenPush = () =>
+    runWithNotification(async () => {
+      await pull();
+      await push();
+    });
+  const handlePullRebase = () => runWithNotification(() => pullRebase());
+  const handleResetToRemote = () => runWithNotification(() => resetToRemote());
+  const handlePushForce = () => runWithNotification(() => pushForce());
+  const handleMergeAllowUnrelated = () =>
+    runWithNotification(() => pullAllowUnrelatedHistories());
+  const handleRebaseAllowUnrelated = () =>
+    runWithNotification(() => pullRebaseAllowUnrelatedHistories());
 
   const getRemotePlatform = (url: string) => {
     if (url.includes('github.com')) return 'GitHub';
@@ -233,12 +278,19 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
       <div style={styles.centerContainer}>
         <div style={styles.errorText}>Error: {error}</div>
         <div style={styles.buttonGroup}>
-          <button style={styles.openButton} onClick={() => window.location.reload()}>
+          <button
+            style={styles.openButton}
+            onClick={() => window.location.reload()}
+          >
             Retry
           </button>
           {error.includes('Not a Git repository') && (
             <button
-              style={{ ...styles.openButton, backgroundColor: colors.accent.secondary, marginTop: 0 }}
+              style={{
+                ...styles.openButton,
+                backgroundColor: colors.accent.secondary,
+                marginTop: 0,
+              }}
               onClick={handleManualInit}
             >
               Initialize Here
@@ -253,17 +305,26 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
     return (
       <div style={styles.centerContainer}>
         <div style={styles.welcomeText}>Git GUI</div>
-        <div style={styles.instructionText}>Open an existing repository or initialize a new one</div>
+        <div style={styles.instructionText}>
+          Open an existing repository or initialize a new one
+        </div>
         <div style={styles.welcomeActions}>
           <button style={styles.welcomeBtn} onClick={onOpenRepository}>
             <span style={styles.welcomeBtnIcon}>📂</span>
             <span style={styles.welcomeBtnLabel}>Open Repository</span>
-            <span style={styles.welcomeBtnDesc}>Open a folder that already contains a git repo</span>
+            <span style={styles.welcomeBtnDesc}>
+              Open a folder that already contains a git repo
+            </span>
           </button>
-          <button style={{ ...styles.welcomeBtn, ...styles.welcomeBtnSecondary }} onClick={onInitRepository}>
+          <button
+            style={{ ...styles.welcomeBtn, ...styles.welcomeBtnSecondary }}
+            onClick={onInitRepository}
+          >
             <span style={styles.welcomeBtnIcon}>✦</span>
             <span style={styles.welcomeBtnLabel}>New Repository</span>
-            <span style={styles.welcomeBtnDesc}>Initialize git in an existing or new folder</span>
+            <span style={styles.welcomeBtnDesc}>
+              Initialize git in an existing or new folder
+            </span>
           </button>
         </div>
       </div>
@@ -285,20 +346,46 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
             )}
             <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
               <button
-                style={{ ...styles.actionButton, backgroundColor: sidePanel === 'remotes' ? colors.accent.primary : colors.bg.tertiary, color: sidePanel === 'remotes' ? 'white' : colors.text.primary }}
-                onClick={() => setSidePanel(sidePanel === 'remotes' ? null : 'remotes')}
+                style={{
+                  ...styles.actionButton,
+                  backgroundColor:
+                    sidePanel === 'remotes'
+                      ? colors.accent.primary
+                      : colors.bg.tertiary,
+                  color:
+                    sidePanel === 'remotes' ? 'white' : colors.text.primary,
+                }}
+                onClick={() =>
+                  setSidePanel(sidePanel === 'remotes' ? null : 'remotes')
+                }
               >
                 Remotes
               </button>
               <button
-                style={{ ...styles.actionButton, backgroundColor: sidePanel === 'ssh' ? colors.accent.primary : colors.bg.tertiary, color: sidePanel === 'ssh' ? 'white' : colors.text.primary }}
+                style={{
+                  ...styles.actionButton,
+                  backgroundColor:
+                    sidePanel === 'ssh'
+                      ? colors.accent.primary
+                      : colors.bg.tertiary,
+                  color: sidePanel === 'ssh' ? 'white' : colors.text.primary,
+                }}
                 onClick={() => setSidePanel(sidePanel === 'ssh' ? null : 'ssh')}
               >
                 SSH Keys
               </button>
               <button
-                style={{ ...styles.actionButton, backgroundColor: sidePanel === 'config' ? colors.accent.primary : colors.bg.tertiary, color: sidePanel === 'config' ? 'white' : colors.text.primary }}
-                onClick={() => setSidePanel(sidePanel === 'config' ? null : 'config')}
+                style={{
+                  ...styles.actionButton,
+                  backgroundColor:
+                    sidePanel === 'config'
+                      ? colors.accent.primary
+                      : colors.bg.tertiary,
+                  color: sidePanel === 'config' ? 'white' : colors.text.primary,
+                }}
+                onClick={() =>
+                  setSidePanel(sidePanel === 'config' ? null : 'config')
+                }
               >
                 Identity
               </button>
@@ -310,8 +397,8 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
                 <span style={styles.branchIcon}>⎇</span> {currentBranch.name}
                 {status?.upstream && (
                   <span style={styles.upstreamInfo}>
-                    {' '}({status.upstream})
-                    {status.ahead > 0 && ` ↑${status.ahead}`}
+                    {' '}
+                    ({status.upstream}){status.ahead > 0 && ` ↑${status.ahead}`}
                     {status.behind > 0 && ` ↓${status.behind}`}
                   </span>
                 )}
@@ -319,16 +406,39 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
             )}
             <div style={styles.buttonGroup}>
               <button
-                style={{ ...styles.actionButton, backgroundColor: isLoadingStatus ? colors.bg.hover : colors.bg.tertiary }}
+                style={{
+                  ...styles.actionButton,
+                  backgroundColor: isLoadingStatus
+                    ? colors.bg.hover
+                    : colors.bg.tertiary,
+                }}
                 onClick={() => void refresh()}
                 disabled={isLoadingStatus}
                 title="Refresh"
               >
                 {isLoadingStatus ? '⏳' : '🔄'}
               </button>
-              <button style={styles.actionButton} onClick={() => void handleFetch()} title="Fetch from remote">Fetch</button>
-              <button style={styles.actionButton} onClick={() => void handlePull()} title="Pull from remote">Pull</button>
-              <button style={styles.actionButton} onClick={() => void handlePush()} title="Push to remote">Push</button>
+              <button
+                style={styles.actionButton}
+                onClick={() => void handleFetch()}
+                title="Fetch from remote"
+              >
+                Fetch
+              </button>
+              <button
+                style={styles.actionButton}
+                onClick={() => void handlePull()}
+                title="Pull from remote"
+              >
+                Pull
+              </button>
+              <button
+                style={styles.actionButton}
+                onClick={() => void handlePush()}
+                title="Push to remote"
+              >
+                Push
+              </button>
             </div>
             {status && (
               <span style={styles.status}>
@@ -336,7 +446,8 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
                   <span style={styles.statusClean}>✓ Clean</span>
                 ) : (
                   <span style={styles.statusDirty}>
-                    {status.files.length} file{status.files.length !== 1 ? 's' : ''} changed
+                    {status.files.length} file
+                    {status.files.length !== 1 ? 's' : ''} changed
                   </span>
                 )}
               </span>
@@ -345,52 +456,185 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
         </div>
       </div>
 
-      {/* Notification banner */}
-      {notification && notification.kind !== 'divergent' && (
-        <div style={styles.notificationBar}>
-          <span style={styles.notificationText}>{notification.message}</span>
-          <div style={styles.notificationActions}>
-            {notification.kind === 'push-rejected' && (
-              <button style={styles.notificationPrimaryBtn} onClick={() => void handlePullThenPush()}>
-                Pull &amp; Push
+      {/* Notification banner (simple errors and push-rejected only) */}
+      {notification &&
+        notification.kind !== 'divergent' &&
+        notification.kind !== 'unrelated-histories' && (
+          <div style={styles.notificationBar}>
+            <span style={styles.notificationText}>{notification.message}</span>
+            <div style={styles.notificationActions}>
+              {notification.kind === 'push-rejected' && (
+                <button
+                  style={styles.notificationPrimaryBtn}
+                  onClick={() => void handlePullThenPush()}
+                >
+                  Pull &amp; Push
+                </button>
+              )}
+              <button
+                style={styles.notificationDismiss}
+                onClick={() => setNotification(null)}
+              >
+                ✕
               </button>
-            )}
-            <button style={styles.notificationDismiss} onClick={() => setNotification(null)}>✕</button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Divergent branch resolution card */}
       {notification?.kind === 'divergent' && (
         <div style={styles.divergentCard}>
           <div style={styles.divergentHeader}>
-            <span style={styles.divergentTitle}>⚠ Divergent branches — choose how to reconcile</span>
-            <button style={styles.notificationDismiss} onClick={() => setNotification(null)}>✕</button>
+            <span style={styles.divergentTitle}>
+              ⚠ Divergent branches — choose how to reconcile
+            </span>
+            <button
+              style={styles.notificationDismiss}
+              onClick={() => setNotification(null)}
+            >
+              ✕
+            </button>
           </div>
           <div style={styles.divergentOptions}>
-            <button style={styles.divergentOption} onClick={() => void handlePullThenPush()}>
+            <button
+              style={styles.divergentOption}
+              onClick={() => void handlePullThenPush()}
+            >
               <span style={styles.divergentOptionTitle}>Merge</span>
-              <span style={styles.divergentOptionDesc}>Pull remote changes into local, then push. Creates a merge commit.</span>
+              <span style={styles.divergentOptionDesc}>
+                Pull remote changes into local, then push. Creates a merge
+                commit.
+              </span>
             </button>
-            <button style={styles.divergentOption} onClick={() => void handlePullRebase()}>
+            <button
+              style={styles.divergentOption}
+              onClick={() => void handlePullRebase()}
+            >
               <span style={styles.divergentOptionTitle}>Rebase</span>
-              <span style={styles.divergentOptionDesc}>Replay my commits on top of remote. Keeps history linear.</span>
+              <span style={styles.divergentOptionDesc}>
+                Replay my commits on top of remote. Keeps history linear.
+              </span>
             </button>
-            <button style={{ ...styles.divergentOption, ...styles.divergentOptionDanger }} onClick={() => {
-              if (window.confirm('This will discard ALL your local commits on this branch and replace them with the remote version. Continue?')) {
-                void handleResetToRemote();
-              }
-            }}>
+            <button
+              style={{
+                ...styles.divergentOption,
+                ...styles.divergentOptionDanger,
+              }}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'This will discard ALL your local commits on this branch and replace them with the remote version. Continue?'
+                  )
+                ) {
+                  void handleResetToRemote();
+                }
+              }}
+            >
               <span style={styles.divergentOptionTitle}>Reset to remote</span>
-              <span style={styles.divergentOptionDesc}>Discard my local commits. Use remote version. Cannot be undone.</span>
+              <span style={styles.divergentOptionDesc}>
+                Discard my local commits. Use remote version. Cannot be undone.
+              </span>
             </button>
-            <button style={{ ...styles.divergentOption, ...styles.divergentOptionDanger }} onClick={() => {
-              if (window.confirm('This will overwrite the remote branch with your local version. Other contributors may lose work. Continue?')) {
-                void handlePushForce();
-              }
-            }}>
+            <button
+              style={{
+                ...styles.divergentOption,
+                ...styles.divergentOptionDanger,
+              }}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'This will overwrite the remote branch with your local version. Other contributors may lose work. Continue?'
+                  )
+                ) {
+                  void handlePushForce();
+                }
+              }}
+            >
               <span style={styles.divergentOptionTitle}>Force push</span>
-              <span style={styles.divergentOptionDesc}>Overwrite remote with my local version. Dangerous for shared branches.</span>
+              <span style={styles.divergentOptionDesc}>
+                Overwrite remote with my local version. Dangerous for shared
+                branches.
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Unrelated histories resolution card */}
+      {notification?.kind === 'unrelated-histories' && (
+        <div style={styles.divergentCard}>
+          <div style={styles.divergentHeader}>
+            <span style={styles.divergentTitle}>
+              ⚠ Unrelated histories — choose how to reconcile
+            </span>
+            <button
+              style={styles.notificationDismiss}
+              onClick={() => setNotification(null)}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={styles.divergentOptions}>
+            <button
+              style={styles.divergentOption}
+              onClick={() => void handleMergeAllowUnrelated()}
+            >
+              <span style={styles.divergentOptionTitle}>Merge</span>
+              <span style={styles.divergentOptionDesc}>
+                Pull and merge despite unrelated histories. Creates a merge
+                commit.
+              </span>
+            </button>
+            <button
+              style={styles.divergentOption}
+              onClick={() => void handleRebaseAllowUnrelated()}
+            >
+              <span style={styles.divergentOptionTitle}>Rebase</span>
+              <span style={styles.divergentOptionDesc}>
+                Replay my commits on top of remote, allowing unrelated
+                histories.
+              </span>
+            </button>
+            <button
+              style={{
+                ...styles.divergentOption,
+                ...styles.divergentOptionDanger,
+              }}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'This will discard ALL your local commits on this branch and replace them with the remote version. Continue?'
+                  )
+                ) {
+                  void handleResetToRemote();
+                }
+              }}
+            >
+              <span style={styles.divergentOptionTitle}>Reset to remote</span>
+              <span style={styles.divergentOptionDesc}>
+                Discard my local commits. Use remote version. Cannot be undone.
+              </span>
+            </button>
+            <button
+              style={{
+                ...styles.divergentOption,
+                ...styles.divergentOptionDanger,
+              }}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'This will overwrite the remote branch with your local version. Other contributors may lose work. Continue?'
+                  )
+                ) {
+                  void handlePushForce();
+                }
+              }}
+            >
+              <span style={styles.divergentOptionTitle}>Force push</span>
+              <span style={styles.divergentOptionDesc}>
+                Overwrite remote with my local version. Dangerous for shared
+                branches.
+              </span>
             </button>
           </div>
         </div>
@@ -399,7 +643,14 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
       {/* Main content */}
       <div style={styles.content}>
         {sidePanel !== null ? (
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div
+            style={{
+              flex: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             {sidePanel === 'remotes' && (
               <RemoteList
                 remotes={remotes}
@@ -409,7 +660,9 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
               />
             )}
             {sidePanel === 'ssh' && <SSHKeyManager />}
-            {sidePanel === 'config' && <GitConfigPanel repoPath={repositoryPath ?? null} />}
+            {sidePanel === 'config' && (
+              <GitConfigPanel repoPath={repositoryPath ?? null} />
+            )}
           </div>
         ) : (
           <>
@@ -429,10 +682,21 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
                     onFileClick={handleFileClick}
                   />
                 </div>
-                <CommitPanel onCommit={handleCommit} onStash={handleStash} disabled={status?.isClean} />
+                <CommitPanel
+                  onCommit={handleCommit}
+                  onStash={handleStash}
+                  disabled={status?.isClean}
+                />
               </div>
 
-              <div style={{ ...styles.sidebarSection, flex: 0, minHeight: '150px', borderTop: `1px solid ${colors.border.default}` }}>
+              <div
+                style={{
+                  ...styles.sidebarSection,
+                  flex: 0,
+                  minHeight: '150px',
+                  borderTop: `1px solid ${colors.border.default}`,
+                }}
+              >
                 <StashList
                   stashes={stashes}
                   onApply={applyStash}
@@ -441,7 +705,14 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
                 />
               </div>
 
-              <div style={{ ...styles.sidebarSection, flex: 0, minHeight: '200px', borderTop: `1px solid ${colors.border.default}` }}>
+              <div
+                style={{
+                  ...styles.sidebarSection,
+                  flex: 0,
+                  minHeight: '200px',
+                  borderTop: `1px solid ${colors.border.default}`,
+                }}
+              >
                 <div style={styles.sidebarHeader}>Branches</div>
                 <BranchList
                   branches={branches}
@@ -457,7 +728,9 @@ export function RepositoryScreen({ repositoryPath, shouldInit, onOpenRepository,
             <div style={styles.commitPanel}>
               <div style={styles.panelHeader}>
                 <span>Commits</span>
-                {isLoadingCommits && <span style={styles.loadingIndicator}>Loading...</span>}
+                {isLoadingCommits && (
+                  <span style={styles.loadingIndicator}>Loading...</span>
+                )}
               </div>
               <CommitList
                 commits={commits}

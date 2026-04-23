@@ -2,9 +2,15 @@
  * Repository state management with Zustand
  */
 
-import { create } from 'zustand';
-import type { Commit, Branch, RepositoryStatus, Remote, Stash } from '@git-gui/core/git/types';
 import type { Repository } from '@git-gui/core/git';
+import type {
+  Commit,
+  Branch,
+  RepositoryStatus,
+  Remote,
+  Stash,
+} from '@git-gui/core/git/types';
+import { create } from 'zustand';
 
 interface RepositoryState {
   // Current repository
@@ -69,7 +75,8 @@ const initialState = {
 export const useRepositoryStore = create<RepositoryState>((set) => ({
   ...initialState,
 
-  setRepository: (repo: Repository, path: string) => set({ repository: repo, repositoryPath: path }),
+  setRepository: (repo: Repository, path: string) =>
+    set({ repository: repo, repositoryPath: path }),
   setCommits: (commits: Commit[]) => set({ commits }),
   setBranches: (branches: Branch[]) => set({ branches }),
   setRemotes: (remotes: Remote[]) => set({ remotes }),
@@ -78,7 +85,8 @@ export const useRepositoryStore = create<RepositoryState>((set) => ({
   setCurrentBranch: (branch: Branch | null) => set({ currentBranch: branch }),
   setLoading: (isLoading: boolean) => set({ isLoading }),
   setLoadingCommits: (isLoadingCommits: boolean) => set({ isLoadingCommits }),
-  setLoadingBranches: (isLoadingBranches: boolean) => set({ isLoadingBranches }),
+  setLoadingBranches: (isLoadingBranches: boolean) =>
+    set({ isLoadingBranches }),
   setLoadingStatus: (isLoadingStatus: boolean) => set({ isLoadingStatus }),
   setLoadingRemotes: (isLoadingRemotes: boolean) => set({ isLoadingRemotes }),
   setLoadingStashes: (isLoadingStashes: boolean) => set({ isLoadingStashes }),
